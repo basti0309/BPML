@@ -13,6 +13,14 @@ Prozessdesign der Einzelabschlüsse – als statische Web-App, hostbar über Git
 | **Prozess-Flow (BPMN)** | Automatisch aus den Vorgänger-Beziehungen generierte BPMN-Diagramme (bpmn-js), XML-Download für Signavio/Camunda |
 | **AFC-Design** | Ordner-/Task-Struktur für SAP Advanced Financial Closing, Vollständigkeits-Checks, Export als CSV/JSON |
 
+## Struktur bearbeiten (BPML-Tabelle)
+
+- **Umbenennen**: ✎-Button oder Doppelklick auf Bereich/Gruppe/Prozess/Task, Enter speichert, Esc bricht ab.
+- **Anlegen**: „+ Bereich“ (oben rechts), „+ Gruppe“ / „+ Prozess“ / „+ Task“ direkt an der jeweiligen Zeile.
+- **Löschen**: 🗑 an der Zeile — löscht inkl. Unterbaum (mit Bestätigung und Anzahl betroffener Tasks); Vorgänger-Verweise auf gelöschte Tasks werden automatisch bereinigt.
+- **Drag & Drop**: Am ⋮⋮-Griff ziehen. Ablegen **auf** einer übergeordneten Zeile hängt ans Ende an (Task → Prozess, Prozess → Gruppe, Gruppe → Bereich); Ablegen **zwischen** gleichartigen Zeilen sortiert davor/dahinter ein. Task-IDs bleiben dabei stabil, Abhängigkeiten und BPMN-Flows bleiben intakt.
+- **Ohne Maus** (Tablet): im Task-Editor über „Prozess (Verschieben nach…)“.
+
 ## Daten & Zusammenarbeit
 
 - Alle Änderungen werden sofort im Browser gespeichert (localStorage).

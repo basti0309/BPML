@@ -32,6 +32,13 @@ zur Laufzeit im Browser-localStorage). Jeder Export ist ein vollständiger Snaps
 | `status` | string | Entwurf / In Abstimmung / Final |
 | `comments` | array | Workshop-Kommentare `{who, when, text}` |
 
+## Reihenfolge
+
+Die Array-Reihenfolge (`areas`, `groups`, `processes`, `tasks`) ist zugleich die
+Anzeige- und Export-Reihenfolge. Drag & Drop in der Tabelle ändert genau diese
+Reihenfolge bzw. hängt Knoten in ein anderes Parent-Array um; IDs bleiben dabei
+stabil, `dependsOn`-Verweise bleiben gültig.
+
 ## Meta
 
 - `meta.countries`: Länder mit Buchungskreisen (`entities`)

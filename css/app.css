@@ -150,6 +150,33 @@ tr.row-task:hover td { background: var(--accent-soft); cursor: pointer; }
 .task-name { font-weight: 600; }
 .dev-list { margin: 2px 0 0; font-size: 11px; color: var(--warn); }
 
+/* Struktur-Editing */
+.row-actions { float: right; visibility: hidden; display: inline-flex; gap: 4px; }
+tr:hover .row-actions { visibility: visible; }
+.btn.mini { padding: 1px 7px; font-size: 11px; line-height: 1.6; }
+.btn.mini.danger:hover { border-color: var(--bad); color: var(--bad); }
+.drag-handle {
+  display: inline-block;
+  width: 16px;
+  margin-right: 4px;
+  color: var(--na);
+  cursor: grab;
+  user-select: none;
+  letter-spacing: -2px;
+}
+.drag-handle:hover { color: var(--accent); }
+tr.dragging { opacity: 0.4; }
+tr.drop-before td { box-shadow: inset 0 3px 0 0 var(--accent); }
+tr.drop-after td { box-shadow: inset 0 -3px 0 0 var(--accent); }
+tr.drop-into td { outline: 2px dashed var(--accent); outline-offset: -2px; background: var(--accent-soft) !important; }
+input.rename {
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font: inherit;
+  min-width: 260px;
+}
+
 /* ---------- Matrix ---------- */
 .matrix-wrap { overflow-x: auto; }
 table.matrix { border-collapse: collapse; min-width: 700px; font-size: 12px; }

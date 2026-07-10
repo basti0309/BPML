@@ -1,6 +1,6 @@
 // Gemeinsamer Detail-Editor (Drawer) für Tasks + Toast-Helfer.
 
-import { getData, taskById, updateTask, deleteTask, addComment, allTasks } from './state.js';
+import { getData, taskById, updateTask, deleteTask, addComment, allTasks, moveNode } from './state.js';
 
 export function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -49,6 +49,17 @@ export function openTaskEditor(taskId) {
   const freqOpts = ['monatlich', 'quartalsweise', 'jährlich']
     .map((s) => `<option ${s === task.frequency ? 'selected' : ''}>${s}</option>`)
     .join('');
+
+  const procOpts = [];
+  for (const a of getData().areas) {
+    for (const g of a.groups) {
+      for (const p of g.processes) {
+        procOpts.push(
+          `<option value="${p.id}" ${p.id === proc.id ? 'selected' : ''}>${escapeHtml(g.name)} › ${escapeHtml(p.name)}</option>`
+        );
+      }
+    }
+  }
 
   const otherTasks = allTasks().filter((t) => t.task.id !== task.id);
   const depOpts = otherTasks
@@ -131,6 +142,9 @@ export function openTaskEditor(taskId) {
       <label class="full">Vorgänger (Mehrfachauswahl mit Strg/Cmd)
         <select id="f-deps" multiple size="4">${depOpts}</select>
       </label>
+      <label class="full">Prozess (Verschieben nach…)
+        <select id="f-move">${procOpts}</select>
+      </label>
     </div>
 
     <fieldset class="country-block" id="country-block">
@@ -185,6 +199,8 @@ export function openTaskEditor(taskId) {
       },
       dependsOn: [...q('#f-deps').selectedOptions].map((o) => o.value),
     });
+    const targetProc = q('#f-move').value;
+    if (targetProc && targetProc !== proc.id) moveNode(task.id, targetProc);
     closeDrawer();
     showToast(`${task.id} gespeichert.`);
   };

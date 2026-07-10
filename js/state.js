@@ -98,13 +98,150 @@ export function addComment(id, who, text) {
   persist();
 }
 
-export function nextTaskId() {
+export function nextId(prefix) {
   let max = 0;
-  for (const { task } of allTasks()) {
-    const m = /^T(\d+)$/.exec(task.id);
+  const scan = (id) => {
+    const m = new RegExp(`^${prefix}(\\d+)$`).exec(id);
     if (m) max = Math.max(max, Number(m[1]));
+  };
+  for (const area of data.areas || []) {
+    scan(area.id);
+    for (const group of area.groups || []) {
+      scan(group.id);
+      for (const proc of group.processes || []) {
+        scan(proc.id);
+        for (const task of proc.tasks || []) scan(task.id);
+      }
+    }
   }
-  return `T${max + 1}`;
+  return `${prefix}${max + 1}`;
+}
+
+export function nextTaskId() {
+  return nextId('T');
+}
+
+// ---- Struktur-API (alle Ebenen) ------------------------------------------
+
+const KIND_LABEL = { area: 'Bereich', group: 'Prozessgruppe', process: 'Prozess', task: 'Task' };
+
+/** Findet einen Knoten beliebiger Ebene: {kind, node, parentArray, index, parents}. */
+export function findNode(id) {
+  for (let ai = 0; ai < (data.areas || []).length; ai++) {
+    const area = data.areas[ai];
+    if (area.id === id) return { kind: 'area', node: area, parentArray: data.areas, index: ai, parents: {} };
+    for (let gi = 0; gi < (area.groups || []).length; gi++) {
+      const group = area.groups[gi];
+      if (group.id === id) return { kind: 'group', node: group, parentArray: area.groups, index: gi, parents: { area } };
+      for (let pi = 0; pi < (group.processes || []).length; pi++) {
+        const proc = group.processes[pi];
+        if (proc.id === id) return { kind: 'process', node: proc, parentArray: group.processes, index: pi, parents: { area, group } };
+        for (let ti = 0; ti < (proc.tasks || []).length; ti++) {
+          if (proc.tasks[ti].id === id) {
+            return { kind: 'task', node: proc.tasks[ti], parentArray: proc.tasks, index: ti, parents: { area, group, proc } };
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+export function renameNode(id, name) {
+  const hit = findNode(id);
+  if (!hit || !name.trim()) return;
+  const old = hit.node.name;
+  hit.node.name = name.trim();
+  if (old !== hit.node.name) addLog(`${KIND_LABEL[hit.kind]} ${id} umbenannt: „${old}“ → „${hit.node.name}“`);
+  persist();
+}
+
+export function addArea(name) {
+  const area = { id: nextId('A'), name: name || 'Neuer Bereich', groups: [] };
+  data.areas.push(area);
+  addLog(`Bereich ${area.id} „${area.name}“ angelegt`);
+  persist();
+  return area;
+}
+
+export function addGroup(areaId, name) {
+  const hit = findNode(areaId);
+  if (!hit || hit.kind !== 'area') return null;
+  const group = { id: nextId('G'), name: name || 'Neue Prozessgruppe', processes: [] };
+  hit.node.groups.push(group);
+  addLog(`Prozessgruppe ${group.id} in „${hit.node.name}“ angelegt`);
+  persist();
+  return group;
+}
+
+export function addProcess(groupId, name) {
+  const hit = findNode(groupId);
+  if (!hit || hit.kind !== 'group') return null;
+  const proc = { id: nextId('P'), name: name || 'Neuer Prozess', tasks: [] };
+  hit.node.processes.push(proc);
+  addLog(`Prozess ${proc.id} in „${hit.node.name}“ angelegt`);
+  persist();
+  return proc;
+}
+
+/** Alle Task-IDs im Unterbaum eines Knotens. */
+export function taskIdsWithin(node, kind) {
+  if (kind === 'task') return [node.id];
+  if (kind === 'process') return (node.tasks || []).map((t) => t.id);
+  if (kind === 'group') return (node.processes || []).flatMap((p) => (p.tasks || []).map((t) => t.id));
+  return (node.groups || []).flatMap((g) => (g.processes || []).flatMap((p) => (p.tasks || []).map((t) => t.id)));
+}
+
+/** Löscht einen Knoten beliebiger Ebene samt Unterbaum, bereinigt dependsOn. */
+export function deleteNode(id) {
+  const hit = findNode(id);
+  if (!hit) return;
+  const gone = new Set(taskIdsWithin(hit.node, hit.kind));
+  hit.parentArray.splice(hit.index, 1);
+  for (const { task } of allTasks()) {
+    task.dependsOn = (task.dependsOn || []).filter((d) => !gone.has(d));
+  }
+  addLog(`${KIND_LABEL[hit.kind]} ${id} „${hit.node.name}“ gelöscht (${gone.size} Tasks)`);
+  persist();
+}
+
+const CHILD_KIND = { area: 'group', group: 'process', process: 'task' };
+
+/**
+ * Hängt einen Knoten um bzw. sortiert ihn um.
+ * targetParentId: neuer Parent (Prozess für Task, Gruppe für Prozess, Bereich
+ * für Gruppe; 'root' für Bereiche). index: Zielposition im Parent-Array
+ * (weggelassen = ans Ende).
+ */
+export function moveNode(id, targetParentId, index) {
+  const src = findNode(id);
+  if (!src) return false;
+
+  let targetArray;
+  let targetLabel;
+  if (src.kind === 'area') {
+    if (targetParentId !== 'root') return false;
+    targetArray = data.areas;
+    targetLabel = 'oberste Ebene';
+  } else {
+    const target = findNode(targetParentId);
+    if (!target || CHILD_KIND[target.kind] !== src.kind) return false;
+    targetArray =
+      src.kind === 'task' ? target.node.tasks : src.kind === 'process' ? target.node.processes : target.node.groups;
+    targetLabel = `„${target.node.name}“`;
+  }
+
+  // Aus der Quelle entfernen; Ziel-Index korrigieren, wenn im selben Array
+  // vor der Einfügeposition entfernt wurde.
+  src.parentArray.splice(src.index, 1);
+  let insertAt = index === undefined || index === null ? targetArray.length : index;
+  if (targetArray === src.parentArray && src.index < insertAt) insertAt--;
+  insertAt = Math.max(0, Math.min(insertAt, targetArray.length));
+  targetArray.splice(insertAt, 0, src.node);
+
+  addLog(`${KIND_LABEL[src.kind]} ${id} „${src.node.name}“ nach ${targetLabel} verschoben`);
+  persist();
+  return true;
 }
 
 export function newTask(procId, template) {
@@ -145,23 +282,7 @@ export function newTask(procId, template) {
 }
 
 export function deleteTask(id) {
-  for (const area of data.areas) {
-    for (const group of area.groups) {
-      for (const proc of group.processes) {
-        const i = proc.tasks.findIndex((t) => t.id === id);
-        if (i >= 0) {
-          const [gone] = proc.tasks.splice(i, 1);
-          // Abhängigkeiten auf den gelöschten Task entfernen
-          for (const { task } of allTasks()) {
-            task.dependsOn = (task.dependsOn || []).filter((d) => d !== id);
-          }
-          addLog(`Task ${id} „${gone.name}“ gelöscht`);
-          persist();
-          return;
-        }
-      }
-    }
-  }
+  deleteNode(id);
 }
 
 // Harmonisierungsgrad: Anteil der Land-Zellen ohne Abweichung (nur relevante Zellen)
