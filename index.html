@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BPML – Einzelabschlüsse & AFC-Design</title>
+  <link rel="stylesheet" href="css/diagram-js.css" />
+  <link rel="stylesheet" href="css/bpmn-js.css" />
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon">📋</span>
+      <div>
+        <h1 id="app-title">BPML Einzelabschlüsse</h1>
+        <span id="app-client" class="muted"></span>
+      </div>
+    </div>
+    <nav class="tabs" id="nav-tabs">
+      <button data-view="table" class="active">BPML-Tabelle</button>
+      <button data-view="matrix">Länder-Matrix</button>
+      <button data-view="calendar">Closing-Kalender</button>
+      <button data-view="bpmn">Prozess-Flow (BPMN)</button>
+      <button data-view="afc">AFC-Design</button>
+    </nav>
+    <div class="toolbar">
+      <button id="btn-import-excel" title="Excel-Datei (.xlsx) importieren">⬆ Excel</button>
+      <button id="btn-import-json" title="JSON-Snapshot importieren">⬆ JSON</button>
+      <button id="btn-export-excel" title="Aktuellen Stand als Excel exportieren">⬇ Excel</button>
+      <button id="btn-export-json" title="Aktuellen Stand als JSON exportieren">⬇ JSON</button>
+      <button id="btn-log" title="Änderungsprotokoll anzeigen">🕘</button>
+      <button id="btn-reset" title="Auf Seed-Daten zurücksetzen" class="danger">↺</button>
+    </div>
+  </header>
+
+  <main id="view-root"></main>
+
+  <div id="drawer" class="drawer hidden">
+    <div class="drawer-inner">
+      <button class="drawer-close" id="drawer-close">✕</button>
+      <div id="drawer-content"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <input type="file" id="file-excel" accept=".xlsx,.xls,.xlsm,.csv,.ods" hidden />
+  <input type="file" id="file-json" accept=".json" hidden />
+
+  <script src="js/vendor/xlsx.full.min.js"></script>
+  <script src="js/vendor/bpmn-navigated-viewer.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
