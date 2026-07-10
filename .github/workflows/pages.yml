@@ -1,12 +1,11 @@
 name: Deploy GitHub Pages
 
 # Hinweis: Die github-pages-Umgebung erlaubt Deployments nur vom
-# Default-Branch des Repos. Beide Branches sind als Trigger eingetragen,
-# damit das Deployment unabhängig davon funktioniert, welcher davon
-# der Default ist.
+# Default-Branch des Repos (aktuell claude/financial-closing-bpmn-design-5qrro6).
+# Wird der Default-Branch auf main umgestellt, hier den Trigger anpassen.
 on:
   push:
-    branches: [main, claude/financial-closing-bpmn-design-5qrro6]
+    branches: [claude/financial-closing-bpmn-design-5qrro6]
   workflow_dispatch:
 
 permissions:
