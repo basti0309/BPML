@@ -216,6 +216,12 @@ Vergleich Tasks × Länder zur Harmonisierungsanalyse.
   - **Klick auf eine Zelle** schaltet den Zustand um: Standard → Abweichung (mit
     Textabfrage) → nicht relevant → wieder Standard.
   - **Klick auf den Task-Namen** öffnet den Detail-Editor.
+  - **🌐 Länder verwalten** (auch als Toolbar-Button 🌐): öffnet den Länder-Manager
+    (`openCountryManager` in `editor.js`) zum Hinzufügen, Umbenennen, Code-Ändern und
+    Löschen von Ländern. Datenoperationen in `state.js` (`addCountry` / `deleteCountry` /
+    `updateCountry`): ein neues Land wird bei allen Tasks als „Standard“ angelegt, ein
+    gelöschtes aus allen Tasks entfernt, eine Code-Änderung migriert die Schlüssel in
+    `task.countries` überall mit.
 
 > Definition Harmonisierungsgrad: Anteil der **relevanten** Land-Zellen ohne Abweichung
 > (`std / (std + variant)`), berechnet in `harmonizationStats()` in `state.js`.
@@ -401,7 +407,7 @@ Wo man typische Anpassungen vornimmt:
 | Aufgabe | Ort |
 |---|---|
 | Neue Auswahlwerte (Status, AFC-Typen) | `meta.statusValues` / `meta.afcTaskTypes` in `data/bpml.json` |
-| Länder/Buchungskreise ändern | `meta.countries` in `data/bpml.json` |
+| Länder/Buchungskreise ändern | **In-App: 🌐 Länder verwalten** (oder `meta.countries` in `data/bpml.json`); Logik in `state.js` (`addCountry`/`deleteCountry`/`updateCountry`) |
 | Neues Task-Feld | `state.js` (`newTask`-Template), `editor.js` (Formular), ggf. `io.js` (Export/Import) und Views |
 | Excel-Spalten-Mapping erweitern | `COLUMN_ALIASES` in `io.js` |
 | BPMN-Layout/Knotenlogik | `buildBpmnXml()` in `views/bpmn.js` |

@@ -41,7 +41,7 @@ stabil, `dependsOn`-Verweise bleiben gültig.
 
 ## Meta
 
-- `meta.countries`: Länder mit Buchungskreisen (`entities`)
+- `meta.countries`: Länder mit Buchungskreisen (`entities`) – in der App über „🌐 Länder verwalten“ hinzufügbar, umbenennbar und löschbar
 - `meta.closingDayRange`: Anzeigebereich des Closing-Kalenders
 - `meta.statusValues`, `meta.afcTaskTypes`: Auswahllisten
 

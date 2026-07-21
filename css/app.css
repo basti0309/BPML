@@ -301,6 +301,16 @@ fieldset.country-block legend { font-size: 12px; color: var(--muted); padding: 0
 .country-row { display: grid; grid-template-columns: 48px 92px 1fr 1fr; gap: 8px; align-items: center; margin: 5px 0; }
 .country-row .code { font-weight: 700; }
 .country-row .c-reason { opacity: .9; }
+
+/* ---------- Länder-Manager ---------- */
+.cm-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+.cm-table th { text-align: left; font-size: 11px; color: var(--muted); font-weight: 600; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+.cm-table td { padding: 4px 6px; border-bottom: 1px solid var(--line); }
+.cm-table input { width: 100%; }
+.cm-table .cm-code { text-transform: uppercase; font-weight: 700; }
+.cm-add { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.cm-add #cm-new-code { width: 70px; text-transform: uppercase; }
+.cm-add #cm-new-name { flex: 1; min-width: 120px; }
 .drawer-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
 .comments { margin-top: 14px; }
 .comments .comment { border-top: 1px solid var(--line); padding: 6px 0; font-size: 12px; }

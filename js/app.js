@@ -6,7 +6,7 @@ import { renderMatrix } from './views/matrix.js';
 import { renderCalendar } from './views/calendar.js';
 import { renderBpmn } from './views/bpmn.js';
 import { renderAfc } from './views/afc.js';
-import { closeDrawer, showToast, openDrawerHtml } from './editor.js';
+import { closeDrawer, showToast, openDrawerHtml, openCountryManager } from './editor.js';
 
 const views = {
   table: renderTable,
@@ -78,6 +78,8 @@ async function main() {
     const name = prompt('Dein Name (erscheint im Änderungsprotokoll und bei Kommentaren):', getEditor());
     if (name !== null) { setEditor(name); syncToolbar(); showToast(name.trim() ? `Bearbeiter: ${name.trim()}` : 'Bearbeiter zurückgesetzt.'); }
   };
+
+  document.getElementById('btn-countries').onclick = () => openCountryManager();
 
   // Tastenkürzel für Undo/Redo – nur außerhalb von Eingabefeldern (dort greift
   // die native Text-Rückgängig-Funktion).

@@ -1,6 +1,9 @@
 // Gemeinsamer Detail-Editor (Drawer) für Tasks + Toast-Helfer.
 
-import { getData, taskById, updateTask, deleteTask, addComment, allTasks, moveNode, getEditor } from './state.js';
+import {
+  getData, taskById, updateTask, deleteTask, addComment, allTasks, moveNode, getEditor,
+  addCountry, deleteCountry, updateCountry,
+} from './state.js';
 
 export function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -227,5 +230,70 @@ export function openTaskEditor(taskId) {
     if (!text) return;
     addComment(task.id, q('#c-who').value.trim(), text);
     openTaskEditor(task.id); // neu rendern
+  };
+}
+
+/** Länder verwalten: hinzufügen, umbenennen, Code/Buchungskreise ändern, löschen. */
+export function openCountryManager() {
+  const meta = getData().meta;
+  const nTasks = allTasks().length;
+  const rows = (meta.countries || [])
+    .map(
+      (c) => `<tr data-code="${escapeHtml(c.code)}">
+        <td><input class="cm-code" value="${escapeHtml(c.code)}" maxlength="6" /></td>
+        <td><input class="cm-name" value="${escapeHtml(c.name || '')}" /></td>
+        <td><input class="cm-ent" value="${escapeHtml((c.entities || []).join(', '))}" placeholder="Buchungskreise, kommagetrennt" /></td>
+        <td><button class="btn mini danger cm-del" title="Land löschen">🗑</button></td>
+      </tr>`
+    )
+    .join('');
+
+  openDrawerHtml(`
+    <h2>Länder verwalten</h2>
+    <div class="muted" style="margin-bottom:10px">
+      Code (z.B. DE), Name und optionale Buchungskreise. Ein neues Land wird bei allen ${nTasks} Tasks
+      zunächst als „Standard“ angelegt; Löschen entfernt es aus der Matrix und aus allen Tasks.
+    </div>
+    <table class="cm-table">
+      <thead><tr><th style="width:74px">Code</th><th>Name</th><th>Buchungskreise</th><th style="width:34px"></th></tr></thead>
+      <tbody id="cm-body">${rows || '<tr><td colspan="4" class="muted">Noch keine Länder.</td></tr>'}</tbody>
+    </table>
+    <div class="cm-add">
+      <input id="cm-new-code" placeholder="Code" maxlength="6" />
+      <input id="cm-new-name" placeholder="Name" />
+      <button class="btn primary" id="cm-add-btn">+ Land hinzufügen</button>
+    </div>
+  `);
+
+  const body = document.getElementById('cm-body');
+  body.addEventListener('change', (e) => {
+    const tr = e.target.closest('tr[data-code]');
+    if (!tr) return;
+    const code = tr.dataset.code;
+    if (e.target.classList.contains('cm-name')) {
+      updateCountry(code, { name: e.target.value });
+    } else if (e.target.classList.contains('cm-ent')) {
+      updateCountry(code, { entities: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) });
+    } else if (e.target.classList.contains('cm-code')) {
+      const res = updateCountry(code, { code: e.target.value });
+      if (res && res.error) showToast(res.error, 5000);
+      openCountryManager();
+    }
+  });
+  body.addEventListener('click', (e) => {
+    const del = e.target.closest('.cm-del');
+    if (!del) return;
+    const code = del.closest('tr[data-code]').dataset.code;
+    if (confirm(`Land „${code}“ wirklich löschen? Es wird aus allen Tasks entfernt.`)) {
+      deleteCountry(code);
+      openCountryManager();
+      showToast(`Land ${code} gelöscht.`);
+    }
+  });
+  document.getElementById('cm-add-btn').onclick = () => {
+    const res = addCountry(document.getElementById('cm-new-code').value, document.getElementById('cm-new-name').value);
+    if (res && res.error) { showToast(res.error, 5000); return; }
+    openCountryManager();
+    showToast(`Land ${res.code} hinzugefügt.`);
   };
 }

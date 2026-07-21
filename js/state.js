@@ -343,6 +343,67 @@ export function deleteTask(id) {
   deleteNode(id);
 }
 
+// ---- Länder-Verwaltung ----------------------------------------------------
+
+/** Fügt ein Land hinzu; jeder Task bekommt eine Standard-Zelle. */
+export function addCountry(code, name, entities) {
+  const c = String(code || '').trim().toUpperCase();
+  const nm = String(name || '').trim() || c;
+  if (!c) return { error: 'Bitte einen Ländercode angeben.' };
+  if (!/^[A-Z0-9]{1,6}$/.test(c)) return { error: 'Code: 1–6 Buchstaben/Ziffern.' };
+  if (!data.meta.countries) data.meta.countries = [];
+  if (data.meta.countries.some((x) => x.code.toUpperCase() === c)) return { error: `Land „${c}“ existiert bereits.` };
+  data.meta.countries.push({ code: c, name: nm, entities: entities || [] });
+  for (const { task } of allTasks()) {
+    if (!task.countries) task.countries = {};
+    if (!task.countries[c]) task.countries[c] = { applies: true, variant: null };
+  }
+  addLog(`Land ${c} „${nm}“ hinzugefügt`);
+  persist();
+  return { ok: true, code: c };
+}
+
+/** Löscht ein Land aus der Meta-Liste und aus allen Tasks. */
+export function deleteCountry(code) {
+  const list = data.meta.countries || [];
+  const idx = list.findIndex((x) => x.code === code);
+  if (idx < 0) return { error: 'Land nicht gefunden.' };
+  const nm = list[idx].name;
+  list.splice(idx, 1);
+  for (const { task } of allTasks()) {
+    if (task.countries) delete task.countries[code];
+  }
+  addLog(`Land ${code} „${nm}“ gelöscht`);
+  persist();
+  return { ok: true };
+}
+
+/** Ändert Code (mit Schlüssel-Migration in allen Tasks), Name oder Buchungskreise. */
+export function updateCountry(code, patch) {
+  const country = (data.meta.countries || []).find((x) => x.code === code);
+  if (!country) return { error: 'Land nicht gefunden.' };
+  if (patch.code !== undefined) {
+    const nc = String(patch.code || '').trim().toUpperCase();
+    if (!nc) return { error: 'Code darf nicht leer sein.' };
+    if (!/^[A-Z0-9]{1,6}$/.test(nc)) return { error: 'Code: 1–6 Buchstaben/Ziffern.' };
+    if (nc !== code) {
+      if (data.meta.countries.some((x) => x.code.toUpperCase() === nc)) return { error: `Land „${nc}“ existiert bereits.` };
+      for (const { task } of allTasks()) {
+        if (task.countries && task.countries[code] !== undefined) {
+          task.countries[nc] = task.countries[code];
+          delete task.countries[code];
+        }
+      }
+      addLog(`Land ${code} → ${nc} (Code geändert)`);
+      country.code = nc;
+    }
+  }
+  if (patch.name !== undefined) country.name = String(patch.name).trim() || country.code;
+  if (patch.entities !== undefined) country.entities = patch.entities;
+  persist();
+  return { ok: true, code: country.code };
+}
+
 // Harmonisierungsgrad: Anteil der Land-Zellen ohne Abweichung (nur relevante Zellen)
 export function harmonizationStats(tasks) {
   let std = 0, variant = 0, na = 0;

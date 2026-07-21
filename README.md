@@ -30,6 +30,9 @@ Stände wieder einzuladen.
   in Eingabefeldern greift die native Text-Rückgängig-Funktion).
 - **👤 Bearbeiter**: Namen setzen – er erscheint im Änderungsprotokoll und als Vorbelegung
   bei Kommentaren.
+- **🌐 Länder verwalten**: Länder hinzufügen, umbenennen, Code ändern (wird in allen Tasks
+  migriert) oder löschen (auch über „Länder verwalten“ in der Länder-Matrix). Ein neues Land
+  wird bei allen Tasks zunächst als „Standard“ angelegt.
 - Alle Änderungen werden sofort im Browser gespeichert (localStorage).
 
 ## Exporte & Wiedereinladen

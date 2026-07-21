@@ -1,7 +1,7 @@
 // Länder-Vergleichsmatrix: Tasks × Länder mit Harmonisierungs-KPIs.
 
 import { getData, harmonizationStats, taskById, updateTask } from '../state.js';
-import { openTaskEditor, escapeHtml, showToast } from '../editor.js';
+import { openTaskEditor, escapeHtml, showToast, openCountryManager } from '../editor.js';
 
 export function renderMatrix(root) {
   const data = getData();
@@ -59,6 +59,10 @@ export function renderMatrix(root) {
   }
 
   panel.innerHTML = `
+    <div class="filterbar">
+      <button class="btn" id="btn-manage-countries">🌐 Länder verwalten</button>
+      <span class="muted">Spalten hinzufügen/umbenennen/löschen</span>
+    </div>
     <div class="muted" style="margin-bottom:8px">
       ✓ Standard (harmonisiert) · ◐ Abweichung (Tooltip zeigt Details) · – nicht relevant.
       Klick auf eine Zelle schaltet den Zustand um (Standard → Abweichung → n/a), Klick auf den Task-Namen öffnet den Editor.
@@ -71,6 +75,8 @@ export function renderMatrix(root) {
     </div>
   `;
   root.appendChild(panel);
+
+  panel.querySelector('#btn-manage-countries').onclick = () => openCountryManager();
 
   panel.addEventListener('click', (e) => {
     const link = e.target.closest('a[data-open]');
