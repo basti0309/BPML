@@ -273,7 +273,9 @@ Gemeinsamer Task-Editor (Drawer), aus jeder Ansicht per Klick erreichbar.
 
 - Bearbeitet **alle** Task-Felder: Name, Beschreibung, Verantwortlich, Status,
   RACI (R/A), System, Transaktion, Closing Day, Frequenz, AFC-Typ, Dauer, Job-Name,
-  Harmonisiert-Flag, Vorgänger (Mehrfachauswahl) und Länder-Scope inkl. Abweichungstexten.
+  Harmonisiert-Flag, Vorgänger (Mehrfachauswahl) und je Land **Scope, Abweichung und
+  Begründung** (`reason`). Hinweis: Bis zu diesem Stand wurde der Länder-Scope aus dem
+  Editor gar nicht gespeichert (`countries` fehlte im Patch) – jetzt behoben.
 - **Verschieben**: „Prozess (Verschieben nach…)" hängt den Task in einen anderen Prozess um.
 - **Kommentare**: Workshop-Kommentare mit Name und Datum hinzufügen.
 - Aktionen: Speichern, „Prozess-Flow ↗" (Sprung ins BPMN), Löschen (mit Bestätigung).
@@ -297,6 +299,20 @@ Gemeinsamer Task-Editor (Drawer), aus jeder Ansicht per Klick erreichbar.
    Seed **nicht** erneut gelesen.
 3. **↺ (Reset)** löscht den localStorage-Eintrag und lädt den Seed neu.
 
+### Undo/Redo (`state.js`)
+
+- `persist()` legt vor jeder Änderung einen **Schnappschuss** des gesamten Datenstands auf
+  einen Undo-Stack (max. 60); `undo()` / `redo()` stellen ihn wieder her. Da der
+  `changeLog` Teil des Snapshots ist, wird auch der Protokolleintrag mit zurückgenommen.
+- Bedienung: Toolbar **↶ / ↷** oder `Strg+Z` / `Strg+Umschalt+Z` (bzw. `Strg+Y`). In
+  Eingabefeldern greift bewusst die native Text-Rückgängig-Funktion (`app.js` prüft das
+  aktive Element).
+
+### Bearbeiter / Urheber (`state.js`, `app.js`, `editor.js`)
+
+- **👤**-Button setzt einen Bearbeiter-Namen (localStorage `bpml-editor`). `addLog()` schreibt
+  ihn als `who` in jeden Protokolleintrag; im Kommentarfeld ist er vorbelegt.
+
 > Wichtig für die Übergabe: Der Arbeitsstand lebt **pro Browser/Gerät**. Es gibt keine
 > serverseitige Speicherung. Ergebnisse aus Workshops müssen über **Export** gesichert und
 > ins Repo committet werden, sonst gehen sie beim Browser-/Gerätewechsel verloren.
@@ -305,7 +321,7 @@ Gemeinsamer Task-Editor (Drawer), aus jeder Ansicht per Klick erreichbar.
 
 | Button | Funktion |
 |---|---|
-| ⬆ Excel | Bestehende BPML-Excel importieren (Spalten-Mapping siehe `data/schema.md`) |
+| ⬆ Excel | **Von dieser App erzeugten Export verlustfrei wieder laden** (eingebetteter Snapshot) *oder* eine fremde BPML-Excel importieren (Mapping siehe `data/schema.md`) |
 | ⬆ JSON | Exportierten Snapshot wieder laden |
 | ⬇ Excel | **Formatiertes Workbook** `bpml-export-<Datum>.xlsx` (ExcelJS, `js/xlsx-export.js`) mit 6 Blättern |
 | ⬇ JSON | Vollständigen Snapshot als `.json` exportieren (Seed-kompatibel) |
@@ -322,6 +338,14 @@ erzeugt sechs Blätter – **Deckblatt** (KPIs, Legende, Konsistenz-Checks), **B
 und daher isoliert testbar; nur der Aufhänger `exportFormattedExcel(data)` nutzt Browser-APIs.
 Der alte flache Export (`exportExcel` in `io.js`) bleibt als Funktion erhalten, ist aber
 nicht mehr verdrahtet.
+
+**Round-Trip** (`xlsx-export.js` → `io.js`): Der formatierte Export enthält ein
+**verstecktes Blatt `_bpml`** (`state: veryHidden`, für Menschen unsichtbar) mit dem
+vollständigen Datenstand als JSON (in 30 000-Zeichen-Blöcke aufgeteilt, da Excel-Zellen
+begrenzt sind). Beim Import erkennt `loadEmbeddedSnapshot()` das Blatt am Marker
+`BPML-JSON-V1` und lädt den Stand **verlustfrei** – so wandert ein per Mail verschickter
+Export 1:1 zurück in die App. Fehlt das Blatt, greift der klassische Flach-Parser für
+fremde Excels.
 
 **Excel-Import** (`io.js`): liest die erste Tabelle, erkennt Spalten über Aliasse
 (deutsch/englisch, Groß-/Kleinschreibung egal), baut die Hierarchie über gleiche
@@ -398,8 +422,16 @@ Wo man typische Anpassungen vornimmt:
 
 ## 10. Offene Punkte / Bekannte Einschränkungen
 
+> Umgesetzt in diesem Stand: formatierter Excel-Export, **verlustfreier Round-Trip**
+> (Export → Mail → wieder einladen), **Undo/Redo**, **Bearbeiter/Urheber** im Protokoll,
+> **Abweichungsgrund** im Editor (+ Fix des nicht gespeicherten Länder-Scopes).
+
+Noch offen:
+
 - **Keine Mehrbenutzer-Synchronisation.** Zusammenarbeit läuft über Export/Import + Git,
   nicht live. Für parallele Bearbeitung müsste ein Backend ergänzt werden.
+- **Audit-Trail** erfasst jetzt den Urheber, ist aber noch nicht separat exportierbar; der
+  Name ist frei wählbar (keine Authentifizierung).
 - **Seed enthält Beispieldaten.** `meta.client` weist ausdrücklich darauf hin, dass die
   Seed-Daten durch den Import der echten Kunden-Excel ersetzt werden. Das
   Excel-Spalten-Mapping wird an das reale Layout angepasst, sobald es vorliegt

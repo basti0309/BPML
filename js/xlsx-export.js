@@ -97,7 +97,27 @@ export function buildWorkbook(ExcelJS, data) {
   buildSpecifics(wb, data, meta);
   buildCalendar(wb, data, meta, allT);
   buildAfc(wb, data);
+  buildDataSheet(wb, data);
   return wb;
+}
+
+// ---- Eingebetteter Snapshot (Round-Trip zurück in die App) -----------------
+// Der vollständige Datenstand wird als JSON in ein verstecktes Blatt „_bpml"
+// geschrieben (in Zellen aufgeteilt, da Excel-Zellen auf 32767 Zeichen begrenzt
+// sind). Der Import erkennt dieses Blatt und lädt den Stand verlustfrei.
+const DATA_SHEET = '_bpml';
+const DATA_MARKER = 'BPML-JSON-V1';
+const CHUNK = 30000;
+
+function buildDataSheet(wb, data) {
+  const ws = wb.addWorksheet(DATA_SHEET, { state: 'veryHidden' });
+  const json = JSON.stringify(data);
+  const chunks = Math.ceil(json.length / CHUNK) || 1;
+  ws.getCell('A1').value = DATA_MARKER;
+  ws.getCell('B1').value = chunks;
+  for (let i = 0, row = 2; i < json.length; i += CHUNK, row++) {
+    ws.getCell(`A${row}`).value = json.slice(i, i + CHUNK);
+  }
 }
 
 // ---- 1) Deckblatt ----------------------------------------------------------

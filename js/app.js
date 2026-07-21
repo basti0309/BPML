@@ -1,4 +1,4 @@
-import { initState, getData, onChange, resetToSeed } from './state.js';
+import { initState, getData, onChange, resetToSeed, undo, redo, canUndo, canRedo, getEditor, setEditor } from './state.js';
 import { exportJson, importJsonFile, importExcelFile } from './io.js';
 import { exportFormattedExcel } from './xlsx-export.js';
 import { renderTable } from './views/table.js';
@@ -29,6 +29,20 @@ function render() {
   const meta = getData().meta;
   document.getElementById('app-title').textContent = meta.title || 'BPML';
   document.getElementById('app-client').textContent = meta.client || '';
+  syncToolbar();
+}
+
+function syncToolbar() {
+  const u = document.getElementById('btn-undo');
+  const r = document.getElementById('btn-redo');
+  if (u) u.disabled = !canUndo();
+  if (r) r.disabled = !canRedo();
+  const ed = document.getElementById('btn-editor');
+  if (ed) {
+    const name = getEditor();
+    ed.textContent = name ? `👤 ${name}` : '👤';
+    ed.title = name ? `Bearbeiter: ${name} (klicken zum Ändern)` : 'Bearbeiter-Name setzen (für Protokoll & Kommentare)';
+  }
 }
 
 function switchView(name) {
@@ -57,6 +71,25 @@ async function main() {
   const fileExcel = document.getElementById('file-excel');
   const fileJson = document.getElementById('file-json');
 
+  document.getElementById('btn-undo').onclick = () => { if (undo()) showToast('Rückgängig gemacht.'); };
+  document.getElementById('btn-redo').onclick = () => { if (redo()) showToast('Wiederhergestellt.'); };
+
+  document.getElementById('btn-editor').onclick = () => {
+    const name = prompt('Dein Name (erscheint im Änderungsprotokoll und bei Kommentaren):', getEditor());
+    if (name !== null) { setEditor(name); syncToolbar(); showToast(name.trim() ? `Bearbeiter: ${name.trim()}` : 'Bearbeiter zurückgesetzt.'); }
+  };
+
+  // Tastenkürzel für Undo/Redo – nur außerhalb von Eingabefeldern (dort greift
+  // die native Text-Rückgängig-Funktion).
+  window.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const el = document.activeElement;
+    if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+    const k = e.key.toLowerCase();
+    if (k === 'z' && !e.shiftKey) { e.preventDefault(); if (undo()) showToast('Rückgängig gemacht.'); }
+    else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); if (redo()) showToast('Wiederhergestellt.'); }
+  });
+
   document.getElementById('btn-import-excel').onclick = () => fileExcel.click();
   document.getElementById('btn-import-json').onclick = () => fileJson.click();
   document.getElementById('btn-export-excel').onclick = async () => {
@@ -75,9 +108,14 @@ async function main() {
     if (!f) return;
     try {
       const res = await importExcelFile(f);
-      let msg = `Excel importiert: ${res.tasks} Tasks aus „${res.sheet}“`;
-      if (res.countries.length) msg += `, Länder: ${res.countries.join(', ')}`;
-      if (res.unmapped.length) msg += ` – ignorierte Spalten: ${res.unmapped.join(', ')}`;
+      let msg;
+      if (res.snapshot) {
+        msg = `Stand aus „${f.name}“ geladen: ${res.tasks} Tasks.`;
+      } else {
+        msg = `Excel importiert: ${res.tasks} Tasks aus „${res.sheet}“`;
+        if (res.countries.length) msg += `, Länder: ${res.countries.join(', ')}`;
+        if (res.unmapped.length) msg += ` – ignorierte Spalten: ${res.unmapped.join(', ')}`;
+      }
       showToast(msg, 6000);
     } catch (err) {
       showToast(`Import fehlgeschlagen: ${err.message}`, 8000);
@@ -105,7 +143,7 @@ async function main() {
   document.getElementById('btn-log').onclick = () => {
     const log = getData().changeLog || [];
     const items = log.length
-      ? log.map((l) => `<li><b>${l.when}</b> – ${escapeHtml(l.what)}</li>`).join('')
+      ? log.map((l) => `<li><b>${l.when}</b>${l.who ? ` · ${escapeHtml(l.who)}` : ''} – ${escapeHtml(l.what)}</li>`).join('')
       : '<li>Noch keine Änderungen.</li>';
     openDrawerHtml(`<h2>Änderungsprotokoll</h2><ul class="log-list">${items}</ul>`);
   };

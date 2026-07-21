@@ -1,6 +1,6 @@
 // Gemeinsamer Detail-Editor (Drawer) für Tasks + Toast-Helfer.
 
-import { getData, taskById, updateTask, deleteTask, addComment, allTasks, moveNode } from './state.js';
+import { getData, taskById, updateTask, deleteTask, addComment, allTasks, moveNode, getEditor } from './state.js';
 
 export function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -79,8 +79,8 @@ export function openTaskEditor(taskId) {
           <option value="var" ${cc.applies !== false && cc.variant ? 'selected' : ''}>Abweichung</option>
           <option value="na" ${cc.applies === false ? 'selected' : ''}>n/a</option>
         </select>
-        <input class="c-variant" placeholder="Abweichung / Begründung"
-               value="${escapeHtml(cc.variant || '')}" ${cc.applies === false || !cc.variant ? '' : ''} />
+        <input class="c-variant" placeholder="Abweichung (kurz)" value="${escapeHtml(cc.variant || '')}" />
+        <input class="c-reason" placeholder="Begründung" value="${escapeHtml(cc.reason || '')}" />
       </div>`;
     })
     .join('');
@@ -162,7 +162,7 @@ export function openTaskEditor(taskId) {
       <b>Kommentare</b>
       ${comments || '<div class="muted">Noch keine Kommentare.</div>'}
       <div class="comment-add">
-        <input id="c-who" placeholder="Name" style="max-width:110px" />
+        <input id="c-who" placeholder="Name" style="max-width:110px" value="${escapeHtml(getEditor())}" />
         <input id="c-text" placeholder="Kommentar für den Workshop…" />
         <button class="btn" id="c-add">+</button>
       </div>
@@ -177,8 +177,9 @@ export function openTaskEditor(taskId) {
       const code = row.dataset.code;
       const mode = row.querySelector('.c-applies').value;
       const variant = row.querySelector('.c-variant').value.trim();
+      const reason = row.querySelector('.c-reason').value.trim();
       if (mode === 'na') countries[code] = { applies: false, variant: null };
-      else if (mode === 'var') countries[code] = { applies: true, variant: variant || 'Abweichung (Details offen)' };
+      else if (mode === 'var') countries[code] = { applies: true, variant: variant || 'Abweichung (Details offen)', reason: reason || null };
       else countries[code] = { applies: true, variant: null };
     });
     updateTask(task.id, {
@@ -192,6 +193,7 @@ export function openTaskEditor(taskId) {
       closingDay: parseInt(q('#f-day').value, 10) || 0,
       frequency: q('#f-freq').value,
       harmonized: q('#f-harm').value === '1',
+      countries,
       afc: {
         type: q('#f-afc-type').value,
         duration: q('#f-afc-dur').value === '' ? null : parseInt(q('#f-afc-dur').value, 10),

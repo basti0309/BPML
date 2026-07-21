@@ -2,12 +2,31 @@
 // localStorage und benachrichtigt die Views über ein CustomEvent.
 
 const LS_KEY = 'bpml-data-v1';
+const ED_KEY = 'bpml-editor';
+const HISTORY_MAX = 60;
 
 let data = null;
 const listeners = new Set();
 
+// Undo/Redo: Schnappschüsse des gesamten Datenstands. `committed` ist der
+// zuletzt gespeicherte Stand; jede Mutation legt ihn auf den Undo-Stack.
+let committed = null;
+const undoStack = [];
+const redoStack = [];
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
 export function getData() {
   return data;
+}
+
+// ---- Bearbeiter (für Protokoll & Kommentare) -----------------------------
+export function getEditor() {
+  return localStorage.getItem(ED_KEY) || '';
+}
+export function setEditor(name) {
+  const n = (name || '').trim();
+  if (n) localStorage.setItem(ED_KEY, n);
+  else localStorage.removeItem(ED_KEY);
 }
 
 export async function initState() {
@@ -15,6 +34,7 @@ export async function initState() {
   if (stored) {
     try {
       data = JSON.parse(stored);
+      committed = clone(data);
       return data;
     } catch (e) {
       console.warn('localStorage-Daten unlesbar, lade Seed', e);
@@ -22,7 +42,8 @@ export async function initState() {
   }
   const res = await fetch('data/bpml.json');
   data = await res.json();
-  persist(false);
+  committed = clone(data);
+  writeLS();
   return data;
 }
 
@@ -37,13 +58,49 @@ export function resetToSeed() {
   location.reload();
 }
 
-function persist(notifyViews = true) {
+function writeLS() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(data));
   } catch (e) {
     console.error('localStorage voll?', e);
   }
+}
+
+function persist(notifyViews = true) {
+  if (notifyViews && committed !== null) {
+    undoStack.push(committed);
+    if (undoStack.length > HISTORY_MAX) undoStack.shift();
+    redoStack.length = 0;
+  }
+  committed = clone(data);
+  writeLS();
   if (notifyViews) notify();
+}
+
+// ---- Undo / Redo ---------------------------------------------------------
+export const canUndo = () => undoStack.length > 0;
+export const canRedo = () => redoStack.length > 0;
+
+export function undo() {
+  if (!undoStack.length) return false;
+  redoStack.push(clone(data));
+  const prev = undoStack.pop();
+  data = clone(prev);
+  committed = clone(prev);
+  writeLS();
+  notify();
+  return true;
+}
+
+export function redo() {
+  if (!redoStack.length) return false;
+  undoStack.push(clone(data));
+  const next = redoStack.pop();
+  data = clone(next);
+  committed = clone(next);
+  writeLS();
+  notify();
+  return true;
 }
 
 export function onChange(fn) {
@@ -57,7 +114,8 @@ function notify() {
 
 export function addLog(what) {
   if (!data.changeLog) data.changeLog = [];
-  data.changeLog.unshift({ when: new Date().toISOString().slice(0, 16).replace('T', ' '), what });
+  const who = getEditor();
+  data.changeLog.unshift({ when: new Date().toISOString().slice(0, 16).replace('T', ' '), who, what });
   if (data.changeLog.length > 500) data.changeLog.length = 500;
 }
 

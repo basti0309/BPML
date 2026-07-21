@@ -21,15 +21,27 @@ Prozessdesign der Einzelabschlüsse – als statische Web-App, hostbar über Git
 - **Drag & Drop**: Am ⋮⋮-Griff ziehen. Ablegen **auf** einer übergeordneten Zeile hängt ans Ende an (Task → Prozess, Prozess → Gruppe, Gruppe → Bereich); Ablegen **zwischen** gleichartigen Zeilen sortiert davor/dahinter ein. Task-IDs bleiben dabei stabil, Abhängigkeiten und BPMN-Flows bleiben intakt.
 - **Ohne Maus** (Tablet): im Task-Editor über „Prozess (Verschieben nach…)“.
 
-## Daten & Zusammenarbeit
+## Arbeiten mit der App
 
+Die App ist das primäre Arbeitswerkzeug; die Exports dienen zum Verschicken **und** um
+Stände wieder einzuladen.
+
+- **↶ / ↷ Rückgängig / Wiederherstellen** jeder Änderung (auch per `Strg+Z` / `Strg+Umschalt+Z`;
+  in Eingabefeldern greift die native Text-Rückgängig-Funktion).
+- **👤 Bearbeiter**: Namen setzen – er erscheint im Änderungsprotokoll und als Vorbelegung
+  bei Kommentaren.
 - Alle Änderungen werden sofort im Browser gespeichert (localStorage).
+
+## Exporte & Wiedereinladen
+
 - **⬇ Excel**: schön formatiertes Workbook `bpml-export-<Datum>.xlsx` mit sechs Blättern
   (Deckblatt mit KPIs & Checks, gruppierte BPML, Länder-Matrix, Länderspezifika,
   Abschlusskalender, AFC-Task-Liste) – inkl. Freeze Panes, Autofilter, Ampel-Farben und
-  Kommentaren. Aufbau siehe [`docs/BPML-Konzept.xlsx`](docs/BPML-Konzept.xlsx).
-- **⬇ JSON**: vollständigen Snapshot exportieren (z.B. nach einem Workshop) und ins Repo committen.
-- **⬆ Excel**: bestehende BPML-Excel importieren – Spalten-Mapping siehe [`data/schema.md`](data/schema.md).
+  Kommentaren. Aufbau siehe [`docs/BPML-Konzept.xlsx`](docs/BPML-Konzept.xlsx). **Der Export
+  enthält den vollständigen Stand eingebettet** und kann über „⬆ Excel" wieder geladen werden.
+- **⬇ JSON**: vollständigen Snapshot exportieren (z.B. für die Versionierung im Repo).
+- **⬆ Excel**: einen von dieser App erzeugten Export **verlustfrei wieder laden** – oder eine
+  fremde BPML-Excel importieren (Spalten-Mapping siehe [`data/schema.md`](data/schema.md)).
 - **⬆ JSON**: einen exportierten Snapshot wieder laden.
 - **↺**: auf den versionierten Seed (`data/bpml.json`) zurücksetzen.
 

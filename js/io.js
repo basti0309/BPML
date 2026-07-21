@@ -109,9 +109,34 @@ const NA_CELL = /^(-|–|n\/a|na|nein|no|nicht relevant|)$/i;
  * erkannt; unbekannte Großbuchstaben-Spalten (2–3 Zeichen) werden als neues
  * Land übernommen.
  */
+// Erkennt einen von dieser App erzeugten Export am versteckten „_bpml"-Blatt
+// und lädt den eingebetteten Snapshot verlustfrei.
+function loadEmbeddedSnapshot(wb, file) {
+  if (!wb.SheetNames.includes('_bpml')) return null;
+  const sheet = wb.Sheets['_bpml'];
+  const cellVal = (addr) => (sheet[addr] ? sheet[addr].v : undefined);
+  if (cellVal('A1') !== 'BPML-JSON-V1') return null;
+  const chunks = Number(cellVal('B1')) || 0;
+  let json = '';
+  for (let r = 2; r < 2 + chunks; r++) json += cellVal(`A${r}`) || '';
+  const parsed = JSON.parse(json);
+  if (!parsed.meta || !parsed.areas) throw new Error('Eingebetteter Snapshot ist unvollständig.');
+  const n = allTasksCount(parsed);
+  setData(parsed, `Excel-Snapshot „${file.name}“ geladen (${n} Tasks)`);
+  return { tasks: n, sheet: '_bpml', unmapped: [], countries: [], snapshot: true };
+}
+
+function allTasksCount(d) {
+  let n = 0;
+  for (const a of d.areas || []) for (const g of a.groups || []) for (const p of g.processes || []) n += (p.tasks || []).length;
+  return n;
+}
+
 export function importExcelFile(file) {
   return file.arrayBuffer().then((buf) => {
     const wb = XLSX.read(buf, { type: 'array' });
+    const embedded = loadEmbeddedSnapshot(wb, file);
+    if (embedded) return embedded;
     const wsName = wb.SheetNames[0];
     const rows = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { defval: '' });
     if (!rows.length) throw new Error(`Tabelle „${wsName}“ ist leer.`);
