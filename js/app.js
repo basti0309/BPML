@@ -1,5 +1,6 @@
 import { initState, getData, onChange, resetToSeed } from './state.js';
-import { exportJson, importJsonFile, exportExcel, importExcelFile } from './io.js';
+import { exportJson, importJsonFile, importExcelFile } from './io.js';
+import { exportFormattedExcel } from './xlsx-export.js';
 import { renderTable } from './views/table.js';
 import { renderMatrix } from './views/matrix.js';
 import { renderCalendar } from './views/calendar.js';
@@ -58,7 +59,14 @@ async function main() {
 
   document.getElementById('btn-import-excel').onclick = () => fileExcel.click();
   document.getElementById('btn-import-json').onclick = () => fileJson.click();
-  document.getElementById('btn-export-excel').onclick = () => exportExcel();
+  document.getElementById('btn-export-excel').onclick = async () => {
+    try {
+      await exportFormattedExcel(getData());
+      showToast('Excel-Export erstellt (6 Blätter: Deckblatt, BPML, Länder-Matrix, Länderspezifika, Kalender, AFC).', 5000);
+    } catch (err) {
+      showToast(`Excel-Export fehlgeschlagen: ${err.message}`, 7000);
+    }
+  };
   document.getElementById('btn-export-json').onclick = () => exportJson();
 
   fileExcel.onchange = async () => {

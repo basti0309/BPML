@@ -38,7 +38,7 @@ nie auseinanderlaufen.
 | Art | Statische Single-Page-App, **kein Build-Schritt**, reine ES-Module |
 | Sprache | HTML, CSS, Vanilla JavaScript (ES2020+) |
 | Persistenz | `localStorage` (`bpml-data-v1`), Seed aus `data/bpml.json` |
-| Externe Libraries | **bpmn-js** (BPMN-Viewer) und **SheetJS/xlsx** (Excel) – **vendored** unter `js/vendor/`, kein CDN |
+| Externe Libraries | **bpmn-js** (BPMN-Viewer), **SheetJS/xlsx** (Excel-Import) und **ExcelJS** (formatierter Excel-Export) – **vendored** unter `js/vendor/`, kein CDN |
 | Hosting | GitHub Pages (Workflow unter `.github/workflows/`) |
 | Browser | Moderne Desktop-/Tablet-Browser; responsive bis ~900 px (Tabelle wird zu Karten) |
 | Abhängigkeiten/Netz | Läuft komplett offline im Browser; nur der initiale Seed-`fetch` braucht den lokalen Server bzw. Pages |
@@ -65,17 +65,21 @@ BPML/
 ├── js/
 │   ├── app.js              Einstieg: Routing (Tabs/Hash), Toolbar-Verdrahtung
 │   ├── state.js            Zentrale Datenhaltung + Struktur-API (CRUD, Move)
-│   ├── io.js               Import/Export (JSON, Excel, AFC-CSV/JSON)
+│   ├── io.js               Import (Excel), Export (JSON, AFC-CSV/JSON), flacher Excel-Export
+│   ├── xlsx-export.js      Formatierter 6-Blatt-Excel-Export (ExcelJS) – „⬇ Excel“
 │   ├── editor.js           Task-Detail-Editor (Drawer), Toast, Format-Helfer
 │   ├── vendor/
 │   │   ├── bpmn-navigated-viewer.min.js
-│   │   └── xlsx.full.min.js
+│   │   ├── xlsx.full.min.js
+│   │   └── exceljs.min.js
 │   └── views/
 │       ├── table.js        Ansicht „BPML-Tabelle“
 │       ├── matrix.js       Ansicht „Länder-Matrix“
 │       ├── calendar.js     Ansicht „Closing-Kalender“
 │       ├── bpmn.js         Ansicht „Prozess-Flow (BPMN)“ + BPMN-XML-Generator
 │       └── afc.js          Ansicht „AFC-Design“
+├── docs/
+│   └── BPML-Konzept.xlsx   Personas, User Stories, Gap-Analyse & Export-Spezifikation
 └── .github/workflows/      GitHub-Pages-Deployment
 ```
 
@@ -303,10 +307,21 @@ Gemeinsamer Task-Editor (Drawer), aus jeder Ansicht per Klick erreichbar.
 |---|---|
 | ⬆ Excel | Bestehende BPML-Excel importieren (Spalten-Mapping siehe `data/schema.md`) |
 | ⬆ JSON | Exportierten Snapshot wieder laden |
-| ⬇ Excel | Aktuellen Stand als `.xlsx` exportieren (eine Tabelle „BPML", eine Zeile je Task, Länderspalten) |
+| ⬇ Excel | **Formatiertes Workbook** `bpml-export-<Datum>.xlsx` (ExcelJS, `js/xlsx-export.js`) mit 6 Blättern |
 | ⬇ JSON | Vollständigen Snapshot als `.json` exportieren (Seed-kompatibel) |
 | 🕘 | Änderungsprotokoll |
 | ↺ | Auf Seed-Daten zurücksetzen |
+
+**Formatierter Excel-Export** (`js/xlsx-export.js`, ExcelJS): `buildWorkbook(ExcelJS, data)`
+erzeugt sechs Blätter – **Deckblatt** (KPIs, Legende, Konsistenz-Checks), **BPML**
+(gruppierte Hierarchie, Freeze, Status-/Harmonisierungsfarben, R/A), **Länder-Matrix**
+(Ampel ✓/◐/–, Harmonisierungs-% je Gruppe, Abweichung als Zellkommentar),
+**Länderspezifika** (je Abweichung eine Zeile mit Begründung, Autofilter),
+**Abschlusskalender** (Task-Zeitstrahl, Zellfarbe je AFC-Typ, WT0 betont) und
+**AFC-Task-Liste** (flach, maschinenlesbar, Autofilter). Die Kernfunktion ist DOM-frei
+und daher isoliert testbar; nur der Aufhänger `exportFormattedExcel(data)` nutzt Browser-APIs.
+Der alte flache Export (`exportExcel` in `io.js`) bleibt als Funktion erhalten, ist aber
+nicht mehr verdrahtet.
 
 **Excel-Import** (`io.js`): liest die erste Tabelle, erkennt Spalten über Aliasse
 (deutsch/englisch, Groß-/Kleinschreibung egal), baut die Hierarchie über gleiche
@@ -366,6 +381,7 @@ Wo man typische Anpassungen vornimmt:
 | Neues Task-Feld | `state.js` (`newTask`-Template), `editor.js` (Formular), ggf. `io.js` (Export/Import) und Views |
 | Excel-Spalten-Mapping erweitern | `COLUMN_ALIASES` in `io.js` |
 | BPMN-Layout/Knotenlogik | `buildBpmnXml()` in `views/bpmn.js` |
+| Formatierter Excel-Export (Blätter, Spalten, Farben) | `buildWorkbook()` in `js/xlsx-export.js` |
 | AFC-Exportformat | `exportAfcCsv` / `exportAfcJson` in `io.js` |
 | Neue Ansicht/Tab | View-Modul in `js/views/`, in `app.js` registrieren, Tab in `index.html` |
 | Theme/Farben/Responsive | CSS-Variablen und Media-Queries in `css/app.css` |

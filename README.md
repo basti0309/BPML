@@ -24,7 +24,11 @@ Prozessdesign der Einzelabschlüsse – als statische Web-App, hostbar über Git
 ## Daten & Zusammenarbeit
 
 - Alle Änderungen werden sofort im Browser gespeichert (localStorage).
-- **⬇ JSON / ⬇ Excel**: aktuellen Stand exportieren (z.B. nach einem Workshop) und ins Repo committen.
+- **⬇ Excel**: schön formatiertes Workbook `bpml-export-<Datum>.xlsx` mit sechs Blättern
+  (Deckblatt mit KPIs & Checks, gruppierte BPML, Länder-Matrix, Länderspezifika,
+  Abschlusskalender, AFC-Task-Liste) – inkl. Freeze Panes, Autofilter, Ampel-Farben und
+  Kommentaren. Aufbau siehe [`docs/BPML-Konzept.xlsx`](docs/BPML-Konzept.xlsx).
+- **⬇ JSON**: vollständigen Snapshot exportieren (z.B. nach einem Workshop) und ins Repo committen.
 - **⬆ Excel**: bestehende BPML-Excel importieren – Spalten-Mapping siehe [`data/schema.md`](data/schema.md).
 - **⬆ JSON**: einen exportierten Snapshot wieder laden.
 - **↺**: auf den versionierten Seed (`data/bpml.json`) zurücksetzen.
@@ -50,6 +54,7 @@ python3 -m http.server 8000
 ## Technik
 
 - Statisches HTML/CSS/JS ohne Build-Schritt (ES-Module).
-- Vendored Bibliotheken (kein CDN, funktioniert auch in restriktiven Netzen):
-  [bpmn-js](https://github.com/bpmn-io/bpmn-js) (Viewer) und
-  [SheetJS](https://sheetjs.com/) (Excel-Import/-Export) unter `js/vendor/`.
+- Vendored Bibliotheken (kein CDN, funktioniert auch in restriktiven Netzen) unter `js/vendor/`:
+  [bpmn-js](https://github.com/bpmn-io/bpmn-js) (BPMN-Viewer),
+  [SheetJS](https://sheetjs.com/) (Excel-Import) und
+  [ExcelJS](https://github.com/exceljs/exceljs) (formatierter Excel-Export).
