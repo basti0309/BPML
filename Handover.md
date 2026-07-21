@@ -203,8 +203,10 @@ Die zentrale Bearbeitungsansicht der gesamten Hierarchie.
 - **Ohne Maus** (Tablet): Verschieben im Task-Editor über „Prozess (Verschieben nach…)".
 - **Prozessnummer** (Spalte `No.`, z. B. `1.2.1.3`): positionsbasierte Hierarchie-Nummer
   (WBS-Stil), abgeleitet aus der Baum-Position (`outlineNumbers()` in `state.js`). Wird bei
-  jedem Verschieben/Umsortieren automatisch neu vergeben, ist **nicht gespeichert**; die
-  stabilen `T…`-IDs bleiben unberührt. Steht auch in der `No.`-Spalte des BPML-Export-Blatts.
+  jedem Verschieben/Umsortieren automatisch neu vergeben, ist **nicht gespeichert**. Sie ist
+  der **sichtbare Identifier** in allen Ansichten und Exporten (inkl. Vorgänger). Die
+  stabilen `A/G/P/T…`-IDs bleiben **intern** (Schlüssel für `dependsOn`, BPMN, Round-Trip),
+  werden aber **nicht mehr angezeigt**.
 
 ### 5.3 Länder-Matrix (`views/matrix.js`)
 

@@ -1,6 +1,6 @@
 // Closing-Kalender: Workday-Timeline mit Schwimmbahnen je Prozessgruppe.
 
-import { getData } from '../state.js';
+import { getData, outlineNumbers } from '../state.js';
 import { openTaskEditor, escapeHtml, fmtDay } from '../editor.js';
 
 const filter = { country: '' };
@@ -8,6 +8,7 @@ const filter = { country: '' };
 export function renderCalendar(root) {
   const data = getData();
   const meta = data.meta;
+  const no = outlineNumbers();
 
   const days = [];
   for (const a of data.areas) for (const g of a.groups) for (const p of g.processes) for (const t of p.tasks) days.push(t.closingDay ?? 0);
@@ -49,10 +50,10 @@ export function renderCalendar(root) {
               : Object.values(t.countries || {}).some((c) => c.applies !== false && c.variant);
             const varText = filter.country ? (t.countries || {})[filter.country]?.variant : null;
             const type = (t.afc?.type || 'Manual').replace(/[^A-Za-z]/g, '');
-            const deps = (t.dependsOn || []).length ? ` · after ${(t.dependsOn || []).join(', ')}` : '';
+            const deps = (t.dependsOn || []).length ? ` · after ${(t.dependsOn || []).map((d) => no.get(d) || d).join(', ')}` : '';
             return `<div class="cal-task type-${type} ${hasVariant ? 'has-variant' : ''}"
               data-task="${t.id}"
-              title="${escapeHtml(t.name)} (${escapeHtml(t.afc?.type || '')}${deps})${varText ? '\nDeviation: ' + escapeHtml(varText) : ''}">${t.id} ${escapeHtml(t.name)}</div>`;
+              title="${escapeHtml(t.name)} (${escapeHtml(t.afc?.type || '')}${deps})${varText ? '\nDeviation: ' + escapeHtml(varText) : ''}">${no.get(t.id) || ''} ${escapeHtml(t.name)}</div>`;
           })
           .join('');
         cells.push(`<div class="cal-cell ${d === 0 ? 'zero' : ''}">${items}</div>`);

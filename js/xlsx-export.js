@@ -263,7 +263,7 @@ function buildBpml(wb, data) {
   });
   const outline = computeOutline(data);
   const cols = [
-    ['No.', 11], ['ID', 9], ['Task', 38], ['Description', 40], ['R', 18], ['A', 18], ['System', 14],
+    ['No.', 11], ['Task', 40], ['Description', 42], ['R', 18], ['A', 18], ['System', 14],
     ['Transaction', 16], ['AFC type', 12], ['WD', 8], ['Duration', 8], ['Job', 16],
     ['Frequency', 13], ['Predecessors', 14], ['Harmon.', 12], ['Status', 15],
   ];
@@ -291,25 +291,25 @@ function buildBpml(wb, data) {
             .filter(([, c]) => c.applies !== false && c.variant)
             .map(([code]) => code);
           const harm = devs.length ? `◐ ${devs.join(', ')}` : '✓';
+          const preds = (task.dependsOn || []).map((d) => outline[d] || d).join(', ');
           const row = ws.addRow([
-            outline[task.id], task.id, task.name, task.description || '', task.raci?.r || task.owner || '', task.raci?.a || '',
+            outline[task.id], task.name, task.description || '', task.raci?.r || task.owner || '', task.raci?.a || '',
             task.system || '', task.transaction || '', task.afc?.type || '', fmtDay(task.closingDay ?? 0),
             task.afc?.duration ?? '', task.afc?.jobName || '', task.frequency || '',
-            (task.dependsOn || []).join(', '), harm, task.status || '',
+            preds, harm, task.status || '',
           ]);
           row.outlineLevel = 2;
           styleTaskRow(row, LAST);
           row.getCell(1).font = { name: 'Consolas', size: 10, bold: true, color: { argb: C.accent } };
-          row.getCell(2).font = { name: FONT, size: 10, bold: true, color: { argb: C.ink } };
-          row.getCell(10).alignment = { horizontal: 'center' };
-          row.getCell(10).font = { name: 'Consolas', size: 10, color: { argb: C.ink } };
+          row.getCell(9).alignment = { horizontal: 'center' };
+          row.getCell(9).font = { name: 'Consolas', size: 10, color: { argb: C.ink } };
           // Harmonization
-          const hc = row.getCell(15);
+          const hc = row.getCell(14);
           hc.alignment = { horizontal: 'center' };
           hc.font = { name: FONT, size: 10, bold: true, color: { argb: devs.length ? C.warn : C.ok } };
           hc.fill = fill(devs.length ? C.warnSoft : C.okSoft);
           // Status
-          const sc = row.getCell(16);
+          const sc = row.getCell(15);
           const sf = statusFill(task.status);
           sc.alignment = { horizontal: 'center' };
           sc.font = { name: FONT, size: 9.5, bold: true, color: { argb: sf.fg } };
@@ -394,8 +394,9 @@ function buildSpecifics(wb, data, meta) {
     views: [{ state: 'frozen', ySplit: 1, showGridLines: false }],
     pageSetup: { orientation: 'landscape', fitToWidth: 1, fitToHeight: 0 },
   });
+  const outline = computeOutline(data);
   const cols = [
-    ['Area', 26], ['Process Group', 26], ['Process', 24], ['Task ID', 9], ['Task', 34],
+    ['Area', 26], ['Process Group', 26], ['Process', 24], ['No.', 11], ['Task', 34],
     ['Country', 8], ['Deviation', 38], ['Reason', 28], ['Status', 15], ['Confirmed', 11],
   ];
   const LAST = cols.length;
@@ -411,7 +412,7 @@ function buildSpecifics(wb, data, meta) {
       any = true;
       const sf = statusFill(task.status);
       const row = ws.addRow([
-        area.name, group.name, proc.name, task.id, task.name, code, c.variant, c.reason || '', task.status || '', '☐',
+        area.name, group.name, proc.name, outline[task.id], task.name, code, c.variant, c.reason || '', task.status || '', '☐',
       ]);
       row.height = 26;
       for (let i = 1; i <= LAST; i++) {
@@ -503,8 +504,9 @@ function buildAfc(wb, data) {
     views: [{ state: 'frozen', ySplit: 1, showGridLines: false }],
     pageSetup: { orientation: 'landscape', fitToWidth: 1, fitToHeight: 0 },
   });
+  const outline = computeOutline(data);
   const cols = [
-    ['Folder', 22], ['Task ID', 9], ['Task Name', 40], ['Type', 12], ['Closing Day Offset', 10],
+    ['Folder', 22], ['No.', 11], ['Task Name', 40], ['Type', 12], ['Closing Day Offset', 10],
     ['Responsible', 20], ['Accountable', 20], ['Planned Duration (min)', 12], ['Job Template', 18],
     ['Predecessors', 14], ['Frequency', 13], ['Countries', 22], ['Status', 15],
   ];
@@ -519,9 +521,9 @@ function buildAfc(wb, data) {
       .map(([code, c]) => (c.variant ? `${code}*` : code))
       .join(', ');
     const row = ws.addRow([
-      group.name, task.id, task.name, task.afc?.type || 'Manual', task.closingDay ?? 0,
+      group.name, outline[task.id], task.name, task.afc?.type || 'Manual', task.closingDay ?? 0,
       task.raci?.r || task.owner || '', task.raci?.a || '', task.afc?.duration ?? '', task.afc?.jobName || '',
-      (task.dependsOn || []).join(', '), task.frequency || '', scope, task.status || '',
+      (task.dependsOn || []).map((d) => outline[d] || d).join(', '), task.frequency || '', scope, task.status || '',
     ]);
     row.height = 16;
     for (let i = 1; i <= LAST; i++) {

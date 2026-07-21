@@ -1,6 +1,6 @@
 // Import/Export: JSON-Snapshot, Excel (SheetJS, global XLSX), AFC-CSV.
 
-import { getData, setData, allTasks } from './state.js';
+import { getData, setData, allTasks, outlineNumbers } from './state.js';
 
 function stamp() {
   return new Date().toISOString().slice(0, 10);
@@ -246,8 +246,9 @@ export function exportAfcCsv() {
     const s = String(v ?? '');
     return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
+  const no = outlineNumbers();
   const header = [
-    'Folder', 'Task ID', 'Task Name', 'Task Type', 'Closing Day Offset',
+    'Folder', 'No.', 'Task Name', 'Task Type', 'Closing Day Offset',
     'Responsible', 'Accountable', 'Planned Duration (min)', 'Job Template',
     'Predecessors', 'Frequency', 'Description', 'Countries', 'Status',
   ];
@@ -258,10 +259,10 @@ export function exportAfcCsv() {
       .map(([code, c]) => (c.variant ? `${code}*` : code))
       .join(', ');
     lines.push([
-      esc(group.name), esc(task.id), esc(task.name), esc(task.afc?.type || 'Manual'),
+      esc(group.name), esc(no.get(task.id) || ''), esc(task.name), esc(task.afc?.type || 'Manual'),
       esc(task.closingDay), esc(task.raci?.r || task.owner || ''), esc(task.raci?.a || ''),
       esc(task.afc?.duration ?? ''), esc(task.afc?.jobName || ''),
-      esc((task.dependsOn || []).join(', ')), esc(task.frequency || ''),
+      esc((task.dependsOn || []).map((d) => no.get(d) || d).join(', ')), esc(task.frequency || ''),
       esc(task.description || ''), esc(scope), esc(task.status || ''),
     ].join(sep));
   }
@@ -269,11 +270,12 @@ export function exportAfcCsv() {
 }
 
 export function exportAfcJson() {
+  const no = outlineNumbers();
   const folders = new Map();
   for (const { group, task } of allTasks()) {
     if (!folders.has(group.id)) folders.set(group.id, { folder: group.name, tasks: [] });
     folders.get(group.id).tasks.push({
-      id: task.id,
+      no: no.get(task.id) || '',
       name: task.name,
       type: task.afc?.type || 'Manual',
       closingDayOffset: task.closingDay,
@@ -281,7 +283,7 @@ export function exportAfcJson() {
       accountable: task.raci?.a || '',
       plannedDurationMinutes: task.afc?.duration ?? null,
       jobTemplate: task.afc?.jobName || null,
-      predecessors: task.dependsOn || [],
+      predecessors: (task.dependsOn || []).map((d) => no.get(d) || d),
       frequency: task.frequency || null,
       countries: Object.entries(task.countries || {})
         .filter(([, c]) => c.applies !== false)

@@ -19,7 +19,7 @@ process design of single-entity closings – a static web app, hostable via GitH
 - **Add**: “+ Area” (top right), “+ Group” / “+ Process” / “+ Task” directly on the respective row.
 - **Delete**: 🗑 on the row — deletes the whole subtree (with confirmation and the number of affected tasks); predecessor references to deleted tasks are cleaned up automatically.
 - **Drag & drop**: grab the ⋮⋮ handle. Dropping **onto** a parent row appends to the end (task → process, process → group, group → area); dropping **between** rows of the same kind sorts before/after. Task IDs stay stable and dependencies/BPMN flows remain intact.
-- **Process number**: the `No.` column (e.g. `1.2.1.3`) is a positional hierarchy number (WBS-style), assigned automatically from the tree position and **re-numbered on every move/reorder**. The stable `T…` IDs stay untouched (they are referenced by dependencies and BPMN). The number is also written to the `No.` column of the BPML sheet in the Excel export.
+- **Process number**: the `No.` column (e.g. `1.2.1.3`) is a positional hierarchy number (WBS-style), assigned automatically from the tree position and **re-numbered on every move/reorder**. It is the **visible identifier** throughout the app and the exports (including predecessors). Internally, stable IDs still key dependencies, the BPMN flow and the lossless round-trip, but they are no longer displayed.
 - **Without a mouse** (tablet): move a task via “Process (move to…)” in the task editor.
 
 ## Working with the app

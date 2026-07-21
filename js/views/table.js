@@ -72,7 +72,7 @@ export function renderTable(root) {
       <table class="bpml">
         <thead>
           <tr>
-            <th style="width:104px">No. · ID</th>
+            <th style="width:78px">No.</th>
             <th>Task</th>
             <th>Responsible</th>
             <th>System / Transaction</th>
@@ -144,7 +144,7 @@ function onRowClick(e) {
     else if (action === 'add-task') {
       collapsed.delete(node);
       const t = newTask(node);
-      if (t) { openTaskEditor(t.id); showToast(`${t.id} created – fill in the details.`); }
+      if (t) { openTaskEditor(t.id); showToast('Task created – fill in the details.'); }
     } else if (action === 'rename') {
       startRename(btn.closest('tr[data-node]'));
     } else if (action === 'delete') {
@@ -153,8 +153,9 @@ function onRowClick(e) {
       const n = taskIdsWithin(hit.node, hit.kind).length;
       const label = { area: 'Area', group: 'Process Group', process: 'Process', task: 'Task' }[hit.kind];
       if (confirm(`Delete ${label} “${hit.node.name}”?${n ? ` ${n} task(s) will be deleted too.` : ''}`)) {
+        const name = hit.node.name;
         deleteNode(node);
-        showToast(`${node} deleted.`);
+        showToast(`${label} “${name}” deleted.`);
       }
     }
     return;
@@ -293,7 +294,7 @@ function onDrop(e) {
     // In den Parent einhängen (ans Ende); Ziel aufklappen, damit man es sieht
     collapsed.delete(row.dataset.node);
     const ok = moveNode(dragged.id, row.dataset.node === 'root' ? 'root' : row.dataset.node);
-    if (ok) showToast(`${dragged.id} moved.`);
+    if (ok) showToast('Moved.');
     return;
   }
 
@@ -308,7 +309,7 @@ function onDrop(e) {
     : target.kind === 'process' ? target.parents.group.id
     : target.parents.proc.id;
   const ok = moveNode(dragged.id, parentId, target.index + (after ? 1 : 0));
-  if (ok) showToast(`${dragged.id} verschoben.`);
+  if (ok) showToast('Moved.');
 }
 
 // ---- Rendering ------------------------------------------------------------
@@ -371,7 +372,7 @@ function renderRows(tbody, data) {
             .filter(([, c]) => c.applies !== false && c.variant)
             .map(([code, c]) => `${code}: ${escapeHtml(c.variant)}`);
           rows.push(`<tr class="row-task" data-task="${task.id}" data-node="${task.id}" data-kind="task">
-            <td data-label="No. · ID">${handle()}<span class="outline-no">${no.get(task.id) || ''}</span><span class="id-ref">${task.id}</span></td>
+            <td data-label="No.">${handle()}<span class="outline-no">${no.get(task.id) || ''}</span></td>
             <td data-label="Task">
               <span class="task-name node-name">${escapeHtml(task.name)}</span>
               ${task.harmonized ? '' : ' <span class="chip warn" title="not part of the global template">local</span>'}

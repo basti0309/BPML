@@ -16,7 +16,7 @@ in the browser's localStorage at runtime). Every export is a complete snapshot.
 
 | Field | Type | Meaning |
 |---|---|---|
-| `id` | string | Unique ID (T1, T2, …) |
+| `id` | string | Unique **internal** ID (T1, T2, …); keys dependencies/BPMN/round-trip but is no longer displayed — the app shows the positional process number instead |
 | `name` | string | Task name |
 | `description` | string | Description / work instruction |
 | `harmonized` | bool | Part of the harmonized global template? |

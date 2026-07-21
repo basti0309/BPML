@@ -3,7 +3,7 @@
 // Die Diagramme werden nicht von Hand gepflegt – sie bleiben dadurch immer
 // konsistent zur Tabelle.
 
-import { getData } from '../state.js';
+import { getData, outlineNumbers } from '../state.js';
 import { openTaskEditor, escapeHtml, showToast } from '../editor.js';
 
 let viewer = null;
@@ -22,6 +22,7 @@ function xmlEscape(s) {
  * Nachfolger/Vorgänger innerhalb des gewählten Scopes hat.
  */
 export function buildBpmnXml(scopeName, tasks) {
+  const numbers = outlineNumbers();
   const ids = new Set(tasks.map((t) => t.id));
   const deps = new Map(); // id -> Vorgänger (nur im Scope)
   for (const t of tasks) deps.set(t.id, (t.dependsOn || []).filter((d) => ids.has(d)));
@@ -87,7 +88,7 @@ export function buildBpmnXml(scopeName, tasks) {
 
   for (const t of tasks) {
     const p = pos.get(t.id);
-    const label = `${t.id} ${t.name}`;
+    const label = `${numbers.get(t.id) || ''} ${t.name}`;
     const type = t.afc?.type === 'Job' ? 'scriptTask' : t.afc?.type === 'Workflow' ? 'userTask' : 'task';
     flowNodes.push(`<${type} id="Task_${t.id}" name="${xmlEscape(label)}" />`);
     shapes.push(shape(`Task_${t.id}`, p.x, p.y, NODE_W, NODE_H));

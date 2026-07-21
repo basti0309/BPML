@@ -166,7 +166,7 @@ export function updateTask(id, patch, logText) {
   const hit = taskById(id);
   if (!hit) return;
   Object.assign(hit.task, patch);
-  addLog(logText || `Task ${id} “${hit.task.name}” updated`);
+  addLog(logText || `Task “${hit.task.name}” updated`);
   persist();
 }
 
@@ -175,7 +175,7 @@ export function addComment(id, who, text) {
   if (!hit) return;
   if (!hit.task.comments) hit.task.comments = [];
   hit.task.comments.push({ who: who || 'Workshop', when: new Date().toISOString().slice(0, 10), text });
-  addLog(`Comment added to ${id}`);
+  addLog(`Comment added to “${hit.task.name}”`);
   persist();
 }
 
@@ -233,14 +233,14 @@ export function renameNode(id, name) {
   if (!hit || !name.trim()) return;
   const old = hit.node.name;
   hit.node.name = name.trim();
-  if (old !== hit.node.name) addLog(`${KIND_LABEL[hit.kind]} ${id} renamed: “${old}” → “${hit.node.name}”`);
+  if (old !== hit.node.name) addLog(`${KIND_LABEL[hit.kind]} renamed: “${old}” → “${hit.node.name}”`);
   persist();
 }
 
 export function addArea(name) {
   const area = { id: nextId('A'), name: name || 'New Area', groups: [] };
   data.areas.push(area);
-  addLog(`Area ${area.id} “${area.name}” created`);
+  addLog(`Area “${area.name}” created`);
   persist();
   return area;
 }
@@ -250,7 +250,7 @@ export function addGroup(areaId, name) {
   if (!hit || hit.kind !== 'area') return null;
   const group = { id: nextId('G'), name: name || 'New Process Group', processes: [] };
   hit.node.groups.push(group);
-  addLog(`Process group ${group.id} created in “${hit.node.name}”`);
+  addLog(`Process group “${group.name}” created in “${hit.node.name}”`);
   persist();
   return group;
 }
@@ -260,7 +260,7 @@ export function addProcess(groupId, name) {
   if (!hit || hit.kind !== 'group') return null;
   const proc = { id: nextId('P'), name: name || 'New Process', tasks: [] };
   hit.node.processes.push(proc);
-  addLog(`Process ${proc.id} created in “${hit.node.name}”`);
+  addLog(`Process “${proc.name}” created in “${hit.node.name}”`);
   persist();
   return proc;
 }
@@ -282,7 +282,7 @@ export function deleteNode(id) {
   for (const { task } of allTasks()) {
     task.dependsOn = (task.dependsOn || []).filter((d) => !gone.has(d));
   }
-  addLog(`${KIND_LABEL[hit.kind]} ${id} “${hit.node.name}” deleted (${gone.size} tasks)`);
+  addLog(`${KIND_LABEL[hit.kind]} “${hit.node.name}” deleted (${gone.size} tasks)`);
   persist();
 }
 
@@ -320,7 +320,7 @@ export function moveNode(id, targetParentId, index) {
   insertAt = Math.max(0, Math.min(insertAt, targetArray.length));
   targetArray.splice(insertAt, 0, src.node);
 
-  addLog(`${KIND_LABEL[src.kind]} ${id} “${src.node.name}” moved to ${targetLabel}`);
+  addLog(`${KIND_LABEL[src.kind]} “${src.node.name}” moved to ${targetLabel}`);
   persist();
   return true;
 }
@@ -353,7 +353,7 @@ export function newTask(procId, template) {
           template || {}
         );
         proc.tasks.push(task);
-        addLog(`Task ${task.id} created in “${proc.name}”`);
+        addLog(`New task created in “${proc.name}”`);
         persist();
         return task;
       }

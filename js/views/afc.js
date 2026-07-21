@@ -1,12 +1,13 @@
 // AFC-Design-Sicht: Ordnerstruktur (je Prozessgruppe), Vollständigkeits-Checks
 // und Export der Task-Liste als CSV/JSON für SAP Advanced Financial Closing.
 
-import { getData, allTasks } from '../state.js';
+import { getData, allTasks, outlineNumbers } from '../state.js';
 import { openTaskEditor, escapeHtml, fmtDay, statusChip } from '../editor.js';
 import { exportAfcCsv, exportAfcJson } from '../io.js';
 
 export function renderAfc(root) {
   const data = getData();
+  const no = outlineNumbers();
 
   // Vollständigkeits-Checks
   const issues = [];
@@ -35,10 +36,10 @@ export function renderAfc(root) {
   const issueItems = issues
     .map(
       (i) =>
-        `<li><a href="#" data-open="${i.task.id}"><b>${i.task.id}</b> ${escapeHtml(i.task.name)}</a> – missing: ${i.miss.join(', ')}</li>`
+        `<li><a href="#" data-open="${i.task.id}"><b>${no.get(i.task.id) || ''}</b> ${escapeHtml(i.task.name)}</a> – missing: ${i.miss.join(', ')}</li>`
     )
     .join('');
-  const cycleItems = cycles.map((c) => `<li>Cycle: ${c.join(' → ')}</li>`).join('');
+  const cycleItems = cycles.map((c) => `<li>Cycle: ${c.map((id) => no.get(id) || id).join(' → ')}</li>`).join('');
   checkPanel.innerHTML = `
     <b>Design checks for the AFC import</b>
     <ul class="check-list">
@@ -72,14 +73,14 @@ export function renderAfc(root) {
             .map(([code, c]) => (c.variant ? `${code}*` : code))
             .join(', ');
           return `<tr>
-            <td><a href="#" data-open="${t.id}"><b>${t.id}</b></a></td>
+            <td><a href="#" data-open="${t.id}"><b>${no.get(t.id) || ''}</b></a></td>
             <td>${escapeHtml(t.name)}</td>
             <td>${escapeHtml(t.afc?.type || '–')}</td>
             <td>${fmtDay(t.closingDay ?? 0)}</td>
             <td>${escapeHtml(t.raci?.r || t.owner || '–')}</td>
             <td>${t.afc?.duration ?? '–'}</td>
             <td>${escapeHtml(t.afc?.jobName || '–')}</td>
-            <td>${escapeHtml((t.dependsOn || []).join(', ') || '–')}</td>
+            <td>${escapeHtml((t.dependsOn || []).map((d) => no.get(d) || d).join(', ') || '–')}</td>
             <td>${escapeHtml(scope)}</td>
             <td>${statusChip(t.status)}</td>
           </tr>`;
@@ -88,7 +89,7 @@ export function renderAfc(root) {
       folders.push(`<details class="afc-folder" open>
         <summary>📁 ${escapeHtml(group.name)} <span class="muted">(${tasks.length} tasks)</span></summary>
         <table class="afc">
-          <thead><tr><th>ID</th><th>Task</th><th>Type</th><th>Offset</th><th>Responsible</th><th>Duration (min)</th><th>Job</th><th>Predecessors</th><th>Countries</th><th>Status</th></tr></thead>
+          <thead><tr><th>No.</th><th>Task</th><th>Type</th><th>Offset</th><th>Responsible</th><th>Duration (min)</th><th>Job</th><th>Predecessors</th><th>Countries</th><th>Status</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </details>`);

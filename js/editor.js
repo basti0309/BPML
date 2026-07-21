@@ -1,7 +1,7 @@
 // Gemeinsamer Detail-Editor (Drawer) für Tasks + Toast-Helfer.
 
 import {
-  getData, taskById, updateTask, deleteTask, addComment, allTasks, moveNode, getEditor,
+  getData, taskById, updateTask, deleteTask, addComment, allTasks, moveNode, getEditor, outlineNumbers,
   addCountry, deleteCountry, updateCountry,
 } from './state.js';
 
@@ -42,6 +42,8 @@ export function openTaskEditor(taskId) {
   if (!hit) return;
   const { area, group, proc, task } = hit;
   const meta = getData().meta;
+  const numbers = outlineNumbers();
+  const no = numbers.get(task.id) || '';
 
   const statusOpts = meta.statusValues
     .map((s) => `<option ${s === task.status ? 'selected' : ''}>${escapeHtml(s)}</option>`)
@@ -68,7 +70,7 @@ export function openTaskEditor(taskId) {
   const depOpts = otherTasks
     .map(
       (t) =>
-        `<option value="${t.task.id}" ${(task.dependsOn || []).includes(t.task.id) ? 'selected' : ''}>${t.task.id} – ${escapeHtml(t.task.name)}</option>`
+        `<option value="${t.task.id}" ${(task.dependsOn || []).includes(t.task.id) ? 'selected' : ''}>${numbers.get(t.task.id) || ''} ${escapeHtml(t.task.name)}</option>`
     )
     .join('');
 
@@ -93,7 +95,7 @@ export function openTaskEditor(taskId) {
     .join('');
 
   openDrawerHtml(`
-    <h2>${escapeHtml(task.id)} – ${escapeHtml(task.name)}</h2>
+    <h2><span class="outline-no">${escapeHtml(no)}</span> ${escapeHtml(task.name)}</h2>
     <div class="muted">${escapeHtml(area.name)} › ${escapeHtml(group.name)} › ${escapeHtml(proc.name)}</div>
 
     <div class="form-grid" id="task-form">
@@ -207,14 +209,14 @@ export function openTaskEditor(taskId) {
     const targetProc = q('#f-move').value;
     if (targetProc && targetProc !== proc.id) moveNode(task.id, targetProc);
     closeDrawer();
-    showToast(`${task.id} saved.`);
+    showToast(`Task saved.`);
   };
 
   q('#f-delete').onclick = () => {
-    if (confirm(`Delete task ${task.id} “${task.name}”?`)) {
+    if (confirm(`Delete task “${task.name}”?`)) {
       deleteTask(task.id);
       closeDrawer();
-      showToast(`${task.id} deleted.`);
+      showToast(`Task “${task.name}” deleted.`);
     }
   };
 

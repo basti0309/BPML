@@ -1,12 +1,13 @@
 // Länder-Vergleichsmatrix: Tasks × Länder mit Harmonisierungs-KPIs.
 
-import { getData, harmonizationStats, taskById, updateTask } from '../state.js';
+import { getData, harmonizationStats, taskById, updateTask, outlineNumbers } from '../state.js';
 import { openTaskEditor, escapeHtml, showToast, openCountryManager } from '../editor.js';
 
 export function renderMatrix(root) {
   const data = getData();
   const meta = data.meta;
   const codes = meta.countries.map((c) => c.code);
+  const no = outlineNumbers();
 
   // KPIs gesamt + je Prozessgruppe
   const allT = [];
@@ -50,7 +51,7 @@ export function renderMatrix(root) {
             })
             .join('');
           rows.push(`<tr>
-            <td class="rowhead"><a href="#" data-open="${task.id}" style="color:inherit;text-decoration:none"><b>${task.id}</b> ${escapeHtml(task.name)}</a></td>
+            <td class="rowhead"><a href="#" data-open="${task.id}" style="color:inherit;text-decoration:none"><b>${no.get(task.id) || ''}</b> ${escapeHtml(task.name)}</a></td>
             ${cells}
           </tr>`);
         }
@@ -95,12 +96,13 @@ export function renderMatrix(root) {
     let next;
     if (cur.applies === false) next = { applies: true, variant: null };
     else if (!cur.variant) {
-      const text = prompt(`Describe the deviation for ${code} on ${hit.task.id} “${hit.task.name}”:`, '');
+      const text = prompt(`Describe the deviation for ${code} on ${outlineNumbers().get(hit.task.id) || ''} “${hit.task.name}”:`, '');
       if (text === null) return;
       next = { applies: true, variant: text.trim() || 'Deviation (details pending)' };
     } else next = { applies: false, variant: null };
+    const pno = outlineNumbers().get(hit.task.id) || hit.task.name;
     countries[code] = next;
-    updateTask(hit.task.id, { countries }, `Matrix: ${hit.task.id}/${code} → ${next.applies === false ? 'n/a' : next.variant ? 'Deviation' : 'Standard'}`);
-    showToast(`${hit.task.id} / ${code} updated.`);
+    updateTask(hit.task.id, { countries }, `Matrix: ${pno}/${code} → ${next.applies === false ? 'n/a' : next.variant ? 'Deviation' : 'Standard'}`);
+    showToast(`${pno} / ${code} updated.`);
   });
 }
