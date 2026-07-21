@@ -24,8 +24,8 @@ export function exportJson() {
 export function importJsonFile(file) {
   return file.text().then((txt) => {
     const parsed = JSON.parse(txt);
-    if (!parsed.meta || !parsed.areas) throw new Error('Kein gültiger BPML-Snapshot (meta/areas fehlen).');
-    setData(parsed, `JSON-Import „${file.name}“`);
+    if (!parsed.meta || !parsed.areas) throw new Error('Not a valid BPML snapshot (meta/areas missing).');
+    setData(parsed, `JSON import “${file.name}”`);
   });
 }
 
@@ -37,20 +37,20 @@ export function exportExcel() {
   const rows = allTasks().map(({ area, group, proc, task }) => {
     const row = {
       'ID': task.id,
-      'Bereich': area.name,
-      'Prozessgruppe': group.name,
-      'Prozess': proc.name,
+      'Area': area.name,
+      'Process Group': group.name,
+      'Process': proc.name,
       'Task': task.name,
-      'Beschreibung': task.description || '',
-      'Harmonisiert': task.harmonized ? 'ja' : 'nein',
-      'Verantwortlich': task.owner || '',
+      'Description': task.description || '',
+      'Harmonized': task.harmonized ? 'yes' : 'no',
+      'Responsible': task.owner || '',
       'System': task.system || '',
-      'Transaktion': task.transaction || '',
-      'Tag': task.closingDay,
-      'Frequenz': task.frequency || '',
-      'Vorgänger': (task.dependsOn || []).join(', '),
-      'AFC-Typ': task.afc?.type || '',
-      'Dauer (Min)': task.afc?.duration ?? '',
+      'Transaction': task.transaction || '',
+      'WD': task.closingDay,
+      'Frequency': task.frequency || '',
+      'Predecessors': (task.dependsOn || []).join(', '),
+      'AFC Type': task.afc?.type || '',
+      'Duration (min)': task.afc?.duration ?? '',
       'Job': task.afc?.jobName || '',
       'Status': task.status || '',
     };
@@ -120,9 +120,9 @@ function loadEmbeddedSnapshot(wb, file) {
   let json = '';
   for (let r = 2; r < 2 + chunks; r++) json += cellVal(`A${r}`) || '';
   const parsed = JSON.parse(json);
-  if (!parsed.meta || !parsed.areas) throw new Error('Eingebetteter Snapshot ist unvollständig.');
+  if (!parsed.meta || !parsed.areas) throw new Error('Embedded snapshot is incomplete.');
   const n = allTasksCount(parsed);
-  setData(parsed, `Excel-Snapshot „${file.name}“ geladen (${n} Tasks)`);
+  setData(parsed, `Excel snapshot “${file.name}” loaded (${n} tasks)`);
   return { tasks: n, sheet: '_bpml', unmapped: [], countries: [], snapshot: true };
 }
 
@@ -139,7 +139,7 @@ export function importExcelFile(file) {
     if (embedded) return embedded;
     const wsName = wb.SheetNames[0];
     const rows = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { defval: '' });
-    if (!rows.length) throw new Error(`Tabelle „${wsName}“ ist leer.`);
+    if (!rows.length) throw new Error(`Sheet “${wsName}” is empty.`);
 
     const headers = Object.keys(rows[0]);
     const map = {};
@@ -160,7 +160,7 @@ export function importExcelFile(file) {
       if (country) countryCols.push({ header: h, code: country.code, name: country.name });
       else unmapped.push(h);
     }
-    if (!map.name) throw new Error('Keine Task-Spalte gefunden (erwartet z.B. „Task“ oder „Aktivität“).');
+    if (!map.name) throw new Error('No task column found (expected e.g. “Task” or “Activity”).');
 
     const meta = JSON.parse(JSON.stringify(getData().meta));
     for (const cc of countryCols) {
@@ -209,12 +209,12 @@ export function importExcelFile(file) {
         system: map.system ? String(row[map.system]).trim() : '',
         transaction: map.transaction ? String(row[map.transaction]).trim() : '',
         closingDay: parseClosingDay(map.closingDay ? row[map.closingDay] : 0),
-        frequency: map.frequency ? String(row[map.frequency]).trim() || 'monatlich' : 'monatlich',
+        frequency: map.frequency ? String(row[map.frequency]).trim() || 'Monthly' : 'Monthly',
         dependsOn: map.dependsOn
           ? String(row[map.dependsOn]).split(/[,;]/).map((s) => s.trim()).filter(Boolean)
           : [],
         afc: {
-          type: map.afcType ? String(row[map.afcType]).trim() || 'Manuell' : 'Manuell',
+          type: map.afcType ? String(row[map.afcType]).trim() || 'Manual' : 'Manual',
           duration: map.duration && row[map.duration] !== '' ? Math.round(Number(row[map.duration])) || 30 : 30,
           jobName: map.jobName ? String(row[map.jobName]).trim() || null : null,
         },
@@ -232,7 +232,7 @@ export function importExcelFile(file) {
 
     setData(
       { meta, areas, changeLog: getData().changeLog || [] },
-      `Excel-Import „${file.name}“ (${days.length} Tasks, Tabelle „${wsName}“)`
+      `Excel import “${file.name}” (${days.length} tasks, sheet “${wsName}”)`
     );
     return { tasks: days.length, sheet: wsName, unmapped, countries: countryCols.map((c) => c.code) };
   });
@@ -258,7 +258,7 @@ export function exportAfcCsv() {
       .map(([code, c]) => (c.variant ? `${code}*` : code))
       .join(', ');
     lines.push([
-      esc(group.name), esc(task.id), esc(task.name), esc(task.afc?.type || 'Manuell'),
+      esc(group.name), esc(task.id), esc(task.name), esc(task.afc?.type || 'Manual'),
       esc(task.closingDay), esc(task.raci?.r || task.owner || ''), esc(task.raci?.a || ''),
       esc(task.afc?.duration ?? ''), esc(task.afc?.jobName || ''),
       esc((task.dependsOn || []).join(', ')), esc(task.frequency || ''),
@@ -275,7 +275,7 @@ export function exportAfcJson() {
     folders.get(group.id).tasks.push({
       id: task.id,
       name: task.name,
-      type: task.afc?.type || 'Manuell',
+      type: task.afc?.type || 'Manual',
       closingDayOffset: task.closingDay,
       responsible: task.raci?.r || task.owner || '',
       accountable: task.raci?.a || '',

@@ -1,73 +1,152 @@
 {
   "meta": {
     "version": 1,
-    "client": "Beispiel-Konzern (Seed-Daten – wird durch Excel-Import ersetzt)",
-    "title": "BPML Einzelabschlüsse",
+    "client": "Example Group (seed data – replaced by Excel import)",
+    "title": "BPML Single-Entity Closings",
     "countries": [
-      { "code": "DE", "name": "Deutschland", "entities": ["1000"] },
-      { "code": "FR", "name": "Frankreich", "entities": ["2000"] },
-      { "code": "US", "name": "USA", "entities": ["3000"] },
-      { "code": "CN", "name": "China", "entities": ["4000"] }
+      {
+        "code": "DE",
+        "name": "Germany",
+        "entities": [
+          "1000"
+        ]
+      },
+      {
+        "code": "FR",
+        "name": "France",
+        "entities": [
+          "2000"
+        ]
+      },
+      {
+        "code": "US",
+        "name": "USA",
+        "entities": [
+          "3000"
+        ]
+      },
+      {
+        "code": "CN",
+        "name": "China",
+        "entities": [
+          "4000"
+        ]
+      }
     ],
-    "closingDayRange": { "from": -5, "to": 12 },
-    "statusValues": ["Entwurf", "In Abstimmung", "Final"],
-    "afcTaskTypes": ["Manuell", "Job", "Workflow", "Prüfung", "Meilenstein"]
+    "closingDayRange": {
+      "from": -5,
+      "to": 12
+    },
+    "statusValues": [
+      "Draft",
+      "In Review",
+      "Final"
+    ],
+    "afcTaskTypes": [
+      "Manual",
+      "Job",
+      "Workflow",
+      "Check",
+      "Milestone"
+    ]
   },
   "areas": [
     {
       "id": "A1",
-      "name": "Record to Report – Monats-/Jahresabschluss",
+      "name": "Record to Report – Month-End / Year-End Close",
       "groups": [
         {
           "id": "G1",
-          "name": "Vorbereitende Tätigkeiten",
+          "name": "Preparatory Activities",
           "processes": [
             {
               "id": "P1",
-              "name": "Abschlussvorbereitung",
+              "name": "Close Preparation",
               "tasks": [
                 {
                   "id": "T1",
-                  "name": "Abschlusskalender abstimmen und veröffentlichen",
-                  "description": "Terminplan mit allen Beteiligten abstimmen, Workday-Kalender in AFC pflegen.",
+                  "name": "Agree and publish the closing calendar",
+                  "description": "Agree the schedule with all stakeholders; maintain the workday calendar in AFC.",
                   "harmonized": true,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": true, "variant": null },
-                    "CN": { "applies": true, "variant": null }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": null
+                    }
                   },
-                  "owner": "Konzern-Accounting",
-                  "raci": { "r": "Group Accounting", "a": "Head of Accounting" },
+                  "owner": "Group Accounting",
+                  "raci": {
+                    "r": "Group Accounting",
+                    "a": "Head of Accounting"
+                  },
                   "system": "SAP AFC",
                   "transaction": "AFC Task List",
                   "closingDay": -5,
-                  "frequency": "monatlich",
+                  "frequency": "Monthly",
                   "dependsOn": [],
-                  "afc": { "type": "Manuell", "duration": 60, "jobName": null },
-                  "status": "Entwurf",
+                  "afc": {
+                    "type": "Manual",
+                    "duration": 60,
+                    "jobName": null
+                  },
+                  "status": "Draft",
                   "comments": []
                 },
                 {
                   "id": "T2",
-                  "name": "Vorläufigen Buchungsstopp kommunizieren",
-                  "description": "Cut-off-Termine für Belegerfassung an Fachbereiche kommunizieren.",
+                  "name": "Communicate preliminary posting freeze",
+                  "description": "Communicate cut-off dates for document entry to the business units.",
                   "harmonized": true,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": true, "variant": "Cut-off einen Tag früher wegen Zeitzone", "reason": "Zeitzonenversatz Konsolidierung" },
-                    "CN": { "applies": true, "variant": "Cut-off einen Tag früher wegen Zeitzone", "reason": "Zeitzonenversatz Konsolidierung" }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": "Cut-off one day earlier due to time zone",
+                      "reason": "Time-zone offset for consolidation"
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": "Cut-off one day earlier due to time zone",
+                      "reason": "Time-zone offset for consolidation"
+                    }
                   },
-                  "owner": "Lokales Accounting",
-                  "raci": { "r": "Local Accounting", "a": "Local CFO" },
-                  "system": "E-Mail / Intranet",
+                  "owner": "Local Accounting",
+                  "raci": {
+                    "r": "Local Accounting",
+                    "a": "Local CFO"
+                  },
+                  "system": "Email / Intranet",
                   "transaction": null,
                   "closingDay": -3,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T1"],
-                  "afc": { "type": "Manuell", "duration": 30, "jobName": null },
-                  "status": "Entwurf",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T1"
+                  ],
+                  "afc": {
+                    "type": "Manual",
+                    "duration": 30,
+                    "jobName": null
+                  },
+                  "status": "Draft",
                   "comments": []
                 }
               ]
@@ -76,162 +155,300 @@
         },
         {
           "id": "G2",
-          "name": "Nebenbücher (AP/AR/AA/Vorräte)",
+          "name": "Subledgers (AP/AR/AA/Inventory)",
           "processes": [
             {
               "id": "P2",
-              "name": "Kreditoren (AP) abschließen",
+              "name": "Close Accounts Payable (AP)",
               "tasks": [
                 {
                   "id": "T3",
-                  "name": "Eingangsrechnungen erfassen / WE-RE-Konten klären",
-                  "description": "Offene Wareneingänge ohne Rechnung analysieren und klären (WE/RE).",
+                  "name": "Record incoming invoices / clear GR-IR accounts",
+                  "description": "Analyze and clear open goods receipts without invoice (GR/IR).",
                   "harmonized": true,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": true, "variant": null },
-                    "CN": { "applies": true, "variant": "Zusätzliche Fapiao-Prüfung", "reason": "Golden-Tax-Anforderungen" }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": "Additional Fapiao check",
+                      "reason": "Golden Tax requirements"
+                    }
                   },
-                  "owner": "Kreditorenbuchhaltung",
-                  "raci": { "r": "AP Accountant", "a": "Local Accounting Manager" },
+                  "owner": "Accounts Payable",
+                  "raci": {
+                    "r": "AP Accountant",
+                    "a": "Local Accounting Manager"
+                  },
                   "system": "SAP S/4",
                   "transaction": "MR11 / F.19",
                   "closingDay": -1,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T2"],
-                  "afc": { "type": "Manuell", "duration": 120, "jobName": null },
-                  "status": "Entwurf",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T2"
+                  ],
+                  "afc": {
+                    "type": "Manual",
+                    "duration": 120,
+                    "jobName": null
+                  },
+                  "status": "Draft",
                   "comments": []
                 },
                 {
                   "id": "T4",
-                  "name": "Kreditorenbuchhaltung Periodenende schließen",
-                  "description": "Buchungsperiode AP schließen.",
+                  "name": "Close Accounts Payable at period-end",
+                  "description": "Close the AP posting period.",
                   "harmonized": true,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": true, "variant": null },
-                    "CN": { "applies": true, "variant": null }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": null
+                    }
                   },
-                  "owner": "Kreditorenbuchhaltung",
-                  "raci": { "r": "AP Accountant", "a": "Local Accounting Manager" },
+                  "owner": "Accounts Payable",
+                  "raci": {
+                    "r": "AP Accountant",
+                    "a": "Local Accounting Manager"
+                  },
                   "system": "SAP S/4",
-                  "transaction": "OB52 / Fiori: Buchungsperioden verwalten",
+                  "transaction": "OB52 / Fiori: Manage Posting Periods",
                   "closingDay": 1,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T3"],
-                  "afc": { "type": "Manuell", "duration": 15, "jobName": null },
-                  "status": "Entwurf",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T3"
+                  ],
+                  "afc": {
+                    "type": "Manual",
+                    "duration": 15,
+                    "jobName": null
+                  },
+                  "status": "Draft",
                   "comments": []
                 }
               ]
             },
             {
               "id": "P3",
-              "name": "Debitoren (AR) abschließen",
+              "name": "Close Accounts Receivable (AR)",
               "tasks": [
                 {
                   "id": "T5",
-                  "name": "Zahlungseingänge zuordnen / offene Posten klären",
-                  "description": "Bankverrechnungskonten und unklare Zahlungseingänge aufräumen.",
+                  "name": "Apply incoming payments / clear open items",
+                  "description": "Clean up bank clearing accounts and unassigned incoming payments.",
                   "harmonized": true,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": "LCR/Wechsel-Handling zusätzlich", "reason": "Französische Zahlmittel (LCR)" },
-                    "US": { "applies": true, "variant": "Lockbox-Verarbeitung", "reason": "US-Zahlungsverkehr" },
-                    "CN": { "applies": true, "variant": null }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": "Additional LCR / bill-of-exchange handling",
+                      "reason": "French payment instruments (LCR)"
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": "Lockbox processing",
+                      "reason": "US payment traffic"
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": null
+                    }
                   },
-                  "owner": "Debitorenbuchhaltung",
-                  "raci": { "r": "AR Accountant", "a": "Local Accounting Manager" },
+                  "owner": "Accounts Receivable",
+                  "raci": {
+                    "r": "AR Accountant",
+                    "a": "Local Accounting Manager"
+                  },
                   "system": "SAP S/4",
                   "transaction": "F-28 / FEBAN",
                   "closingDay": -1,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T2"],
-                  "afc": { "type": "Manuell", "duration": 90, "jobName": null },
-                  "status": "Entwurf",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T2"
+                  ],
+                  "afc": {
+                    "type": "Manual",
+                    "duration": 90,
+                    "jobName": null
+                  },
+                  "status": "Draft",
                   "comments": []
                 },
                 {
                   "id": "T6",
-                  "name": "Wertberichtigungen auf Forderungen buchen",
-                  "description": "Einzel- und Pauschalwertberichtigungen ermitteln und buchen.",
+                  "name": "Post allowances for doubtful receivables",
+                  "description": "Determine and post specific and general bad-debt allowances.",
                   "harmonized": false,
                   "countries": {
-                    "DE": { "applies": true, "variant": "PWB nach HGB-Erfahrungssätzen", "reason": "HGB" },
-                    "FR": { "applies": true, "variant": "Provision nach französischem GAAP", "reason": "PCG" },
-                    "US": { "applies": true, "variant": "CECL-Modell", "reason": "US-GAAP" },
-                    "CN": { "applies": true, "variant": "ECL nach CAS", "reason": "CAS" }
+                    "DE": {
+                      "applies": true,
+                      "variant": "General allowance per German-GAAP experience rates",
+                      "reason": "German GAAP (HGB)"
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": "Provision per French GAAP",
+                      "reason": "French GAAP (PCG)"
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": "CECL model",
+                      "reason": "US GAAP"
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": "ECL per CAS",
+                      "reason": "Chinese GAAP (CAS)"
+                    }
                   },
-                  "owner": "Debitorenbuchhaltung",
-                  "raci": { "r": "AR Accountant", "a": "Local CFO" },
+                  "owner": "Accounts Receivable",
+                  "raci": {
+                    "r": "AR Accountant",
+                    "a": "Local CFO"
+                  },
                   "system": "SAP S/4",
                   "transaction": "F-21 / Fiori Journal Entry",
                   "closingDay": 2,
-                  "frequency": "quartalsweise",
-                  "dependsOn": ["T5"],
-                  "afc": { "type": "Manuell", "duration": 60, "jobName": null },
-                  "status": "In Abstimmung",
+                  "frequency": "Quarterly",
+                  "dependsOn": [
+                    "T5"
+                  ],
+                  "afc": {
+                    "type": "Manual",
+                    "duration": 60,
+                    "jobName": null
+                  },
+                  "status": "In Review",
                   "comments": [
-                    { "who": "Beispiel", "when": "2026-07-01", "text": "Harmonisierung auf IFRS-9-ECL für Konzernmeldung prüfen – lokale GAAP bleiben abweichend." }
+                    {
+                      "who": "Example",
+                      "when": "2026-07-01",
+                      "text": "Review harmonization to IFRS 9 ECL for group reporting – local GAAP remains divergent."
+                    }
                   ]
                 }
               ]
             },
             {
               "id": "P4",
-              "name": "Anlagenbuchhaltung (AA) abschließen",
+              "name": "Close Asset Accounting (AA)",
               "tasks": [
                 {
                   "id": "T7",
-                  "name": "Abschreibungslauf durchführen",
-                  "description": "Planmäßige AfA buchen (Abschreibungslauf).",
+                  "name": "Run depreciation",
+                  "description": "Post scheduled depreciation (depreciation run).",
                   "harmonized": true,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": true, "variant": null },
-                    "CN": { "applies": true, "variant": null }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": null
+                    }
                   },
-                  "owner": "Hauptbuchhaltung",
-                  "raci": { "r": "GL Accountant", "a": "Local Accounting Manager" },
+                  "owner": "General Ledger",
+                  "raci": {
+                    "r": "GL Accountant",
+                    "a": "Local Accounting Manager"
+                  },
                   "system": "SAP S/4",
                   "transaction": "AFAB",
                   "closingDay": 1,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T4"],
-                  "afc": { "type": "Job", "duration": 45, "jobName": "AFAB_MONTHLY" },
-                  "status": "Entwurf",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T4"
+                  ],
+                  "afc": {
+                    "type": "Job",
+                    "duration": 45,
+                    "jobName": "AFAB_MONTHLY"
+                  },
+                  "status": "Draft",
                   "comments": []
                 }
               ]
             },
             {
               "id": "P5",
-              "name": "Vorräte bewerten",
+              "name": "Value Inventory",
               "tasks": [
                 {
                   "id": "T8",
-                  "name": "WIP-Kalkulation und Bestandsbewertung",
-                  "description": "Ware in Arbeit kalkulieren, Bestände bewerten, ML-Abschluss.",
+                  "name": "WIP calculation and inventory valuation",
+                  "description": "Calculate work in progress, value inventory, Material Ledger close.",
                   "harmonized": true,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": false, "variant": null, "reason": "Reine Vertriebsgesellschaft ohne Produktion" },
-                    "US": { "applies": true, "variant": null },
-                    "CN": { "applies": true, "variant": null }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": false,
+                      "variant": null,
+                      "reason": "Pure sales entity without production"
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": null
+                    }
                   },
                   "owner": "Controlling",
-                  "raci": { "r": "Controller", "a": "Head of Controlling" },
+                  "raci": {
+                    "r": "Controller",
+                    "a": "Head of Controlling"
+                  },
                   "system": "SAP S/4",
                   "transaction": "CKMLCP (Material Ledger)",
                   "closingDay": 2,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T4"],
-                  "afc": { "type": "Job", "duration": 180, "jobName": "ML_CLOSE" },
-                  "status": "Entwurf",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T4"
+                  ],
+                  "afc": {
+                    "type": "Job",
+                    "duration": 180,
+                    "jobName": "ML_CLOSE"
+                  },
+                  "status": "Draft",
                   "comments": []
                 }
               ]
@@ -244,50 +461,95 @@
           "processes": [
             {
               "id": "P6",
-              "name": "IC-Abstimmung und -Verrechnung",
+              "name": "IC Reconciliation and Settlement",
               "tasks": [
                 {
                   "id": "T9",
-                  "name": "IC-Salden abstimmen (ICMR)",
-                  "description": "Intercompany-Salden konzernweit abstimmen, Differenzen klären.",
+                  "name": "Reconcile IC balances (ICMR)",
+                  "description": "Reconcile intercompany balances group-wide; clear differences.",
                   "harmonized": true,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": true, "variant": null },
-                    "CN": { "applies": true, "variant": null }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": null
+                    }
                   },
-                  "owner": "Hauptbuchhaltung",
-                  "raci": { "r": "GL Accountant", "a": "Group Accounting" },
+                  "owner": "General Ledger",
+                  "raci": {
+                    "r": "GL Accountant",
+                    "a": "Group Accounting"
+                  },
                   "system": "SAP S/4 ICMR",
                   "transaction": "ICMR Matching",
                   "closingDay": 0,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T3", "T5"],
-                  "afc": { "type": "Workflow", "duration": 240, "jobName": null },
-                  "status": "In Abstimmung",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T3",
+                    "T5"
+                  ],
+                  "afc": {
+                    "type": "Workflow",
+                    "duration": 240,
+                    "jobName": null
+                  },
+                  "status": "In Review",
                   "comments": []
                 },
                 {
                   "id": "T10",
-                  "name": "IC-Umlagen und Management Fees buchen",
-                  "description": "Konzernumlagen berechnen und fakturieren.",
+                  "name": "Post IC allocations and management fees",
+                  "description": "Calculate and invoice group allocations.",
                   "harmonized": false,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": true, "variant": "Zusätzliche Sales-Tax-Prüfung", "reason": "US-Steuerrecht" },
-                    "CN": { "applies": true, "variant": "SAFE-Genehmigung für Auslandszahlung", "reason": "Devisenkontrolle" }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": "Additional sales-tax check",
+                      "reason": "US tax law"
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": "SAFE approval for cross-border payment",
+                      "reason": "Foreign-exchange control"
+                    }
                   },
-                  "owner": "Konzern-Controlling",
-                  "raci": { "r": "Group Controller", "a": "Head of Controlling" },
+                  "owner": "Group Controlling",
+                  "raci": {
+                    "r": "Group Controller",
+                    "a": "Head of Controlling"
+                  },
                   "system": "SAP S/4",
-                  "transaction": "Periodische Verrechnung",
+                  "transaction": "Periodic Allocation",
                   "closingDay": 1,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T9"],
-                  "afc": { "type": "Manuell", "duration": 90, "jobName": null },
-                  "status": "Entwurf",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T9"
+                  ],
+                  "afc": {
+                    "type": "Manual",
+                    "duration": 90,
+                    "jobName": null
+                  },
+                  "status": "Draft",
                   "comments": []
                 }
               ]
@@ -296,154 +558,288 @@
         },
         {
           "id": "G4",
-          "name": "Hauptbuch",
+          "name": "General Ledger",
           "processes": [
             {
               "id": "P7",
-              "name": "Rückstellungen und Abgrenzungen",
+              "name": "Provisions and Accruals",
               "tasks": [
                 {
                   "id": "T11",
-                  "name": "Rückstellungen ermitteln und buchen",
-                  "description": "Personal-, Prozess- und sonstige Rückstellungen bewerten und buchen.",
+                  "name": "Determine and post provisions",
+                  "description": "Value and post personnel, litigation and other provisions.",
                   "harmonized": false,
                   "countries": {
-                    "DE": { "applies": true, "variant": "HGB-Bewertung inkl. Abzinsung §253", "reason": "HGB" },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": true, "variant": "Nur IFRS/US-GAAP-Sicht", "reason": "Kein lokales Statutory-Ledger" },
-                    "CN": { "applies": true, "variant": null }
+                    "DE": {
+                      "applies": true,
+                      "variant": "German-GAAP valuation incl. discounting (§253)",
+                      "reason": "German GAAP (HGB)"
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": "IFRS / US-GAAP view only",
+                      "reason": "No local statutory ledger"
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": null
+                    }
                   },
-                  "owner": "Hauptbuchhaltung",
-                  "raci": { "r": "GL Accountant", "a": "Local CFO" },
+                  "owner": "General Ledger",
+                  "raci": {
+                    "r": "GL Accountant",
+                    "a": "Local CFO"
+                  },
                   "system": "SAP S/4",
                   "transaction": "Fiori Journal Entry",
                   "closingDay": 2,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T4"],
-                  "afc": { "type": "Manuell", "duration": 120, "jobName": null },
-                  "status": "Entwurf",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T4"
+                  ],
+                  "afc": {
+                    "type": "Manual",
+                    "duration": 120,
+                    "jobName": null
+                  },
+                  "status": "Draft",
                   "comments": []
                 },
                 {
                   "id": "T12",
-                  "name": "Aktive/passive Rechnungsabgrenzung buchen",
-                  "description": "Wiederkehrende Abgrenzungen (Accrual Engine) prüfen und ergänzen.",
+                  "name": "Post accruals and deferrals",
+                  "description": "Review and complete recurring accruals (Accrual Engine).",
                   "harmonized": true,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": true, "variant": null },
-                    "CN": { "applies": true, "variant": null }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": null
+                    }
                   },
-                  "owner": "Hauptbuchhaltung",
-                  "raci": { "r": "GL Accountant", "a": "Local Accounting Manager" },
+                  "owner": "General Ledger",
+                  "raci": {
+                    "r": "GL Accountant",
+                    "a": "Local Accounting Manager"
+                  },
                   "system": "SAP S/4",
                   "transaction": "Accrual Engine / ACACT",
                   "closingDay": 2,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T4"],
-                  "afc": { "type": "Job", "duration": 30, "jobName": "ACR_POST" },
-                  "status": "Entwurf",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T4"
+                  ],
+                  "afc": {
+                    "type": "Job",
+                    "duration": 30,
+                    "jobName": "ACR_POST"
+                  },
+                  "status": "Draft",
                   "comments": []
                 }
               ]
             },
             {
               "id": "P8",
-              "name": "Fremdwährung und Umbuchungen",
+              "name": "Foreign Currency and Reclassifications",
               "tasks": [
                 {
                   "id": "T13",
-                  "name": "Fremdwährungsbewertung durchführen",
-                  "description": "Offene Posten und Bilanzkonten in Fremdwährung bewerten.",
+                  "name": "Run foreign currency valuation",
+                  "description": "Value open items and balance-sheet accounts in foreign currency.",
                   "harmonized": true,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": true, "variant": null },
-                    "CN": { "applies": true, "variant": null }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": null
+                    }
                   },
-                  "owner": "Hauptbuchhaltung",
-                  "raci": { "r": "GL Accountant", "a": "Local Accounting Manager" },
+                  "owner": "General Ledger",
+                  "raci": {
+                    "r": "GL Accountant",
+                    "a": "Local Accounting Manager"
+                  },
                   "system": "SAP S/4",
                   "transaction": "FAGL_FCV",
                   "closingDay": 3,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T11", "T12"],
-                  "afc": { "type": "Job", "duration": 60, "jobName": "FCV_MONTHLY" },
-                  "status": "Entwurf",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T11",
+                    "T12"
+                  ],
+                  "afc": {
+                    "type": "Job",
+                    "duration": 60,
+                    "jobName": "FCV_MONTHLY"
+                  },
+                  "status": "Draft",
                   "comments": []
                 },
                 {
                   "id": "T14",
-                  "name": "GuV-/Bilanz-Umgliederungen buchen",
-                  "description": "Umgliederungen (z.B. Restlaufzeiten, Saldenausweis) durchführen.",
+                  "name": "Post P&L / balance-sheet reclassifications",
+                  "description": "Perform reclassifications (e.g. remaining terms, balance presentation).",
                   "harmonized": true,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": false, "variant": null, "reason": "Nicht erforderlich nach US-GAAP-Reporting" },
-                    "CN": { "applies": true, "variant": null }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": false,
+                      "variant": null,
+                      "reason": "Not required under US-GAAP reporting"
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": null
+                    }
                   },
-                  "owner": "Hauptbuchhaltung",
-                  "raci": { "r": "GL Accountant", "a": "Local Accounting Manager" },
+                  "owner": "General Ledger",
+                  "raci": {
+                    "r": "GL Accountant",
+                    "a": "Local Accounting Manager"
+                  },
                   "system": "SAP S/4",
                   "transaction": "FAGLF101",
                   "closingDay": 3,
-                  "frequency": "quartalsweise",
-                  "dependsOn": ["T13"],
-                  "afc": { "type": "Job", "duration": 30, "jobName": "SORT_RECLASS" },
-                  "status": "Entwurf",
+                  "frequency": "Quarterly",
+                  "dependsOn": [
+                    "T13"
+                  ],
+                  "afc": {
+                    "type": "Job",
+                    "duration": 30,
+                    "jobName": "SORT_RECLASS"
+                  },
+                  "status": "Draft",
                   "comments": []
                 }
               ]
             },
             {
               "id": "P9",
-              "name": "Steuern",
+              "name": "Tax",
               "tasks": [
                 {
                   "id": "T15",
-                  "name": "Umsatzsteuer-Verprobung und -Meldung vorbereiten",
-                  "description": "USt-Konten verproben, Voranmeldung vorbereiten.",
+                  "name": "Prepare VAT reconciliation and return",
+                  "description": "Reconcile VAT accounts; prepare the advance return.",
                   "harmonized": false,
                   "countries": {
-                    "DE": { "applies": true, "variant": "UStVA elektronisch (ELSTER)", "reason": "Deutsches Steuerrecht" },
-                    "FR": { "applies": true, "variant": "CA3-Meldung", "reason": "Französisches Steuerrecht" },
-                    "US": { "applies": true, "variant": "Sales & Use Tax je Bundesstaat", "reason": "US-Steuerrecht" },
-                    "CN": { "applies": true, "variant": "Golden Tax System Abgleich", "reason": "Chinesisches Steuerrecht" }
+                    "DE": {
+                      "applies": true,
+                      "variant": "Electronic VAT return (ELSTER)",
+                      "reason": "German tax law"
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": "CA3 return",
+                      "reason": "French tax law"
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": "Sales & Use Tax per state",
+                      "reason": "US tax law"
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": "Golden Tax System reconciliation",
+                      "reason": "Chinese tax law"
+                    }
                   },
-                  "owner": "Steuern",
-                  "raci": { "r": "Tax Accountant", "a": "Head of Tax" },
-                  "system": "SAP S/4 / lokale Tools",
-                  "transaction": "RFUMSV00 u.a.",
+                  "owner": "Tax",
+                  "raci": {
+                    "r": "Tax Accountant",
+                    "a": "Head of Tax"
+                  },
+                  "system": "SAP S/4 / local tools",
+                  "transaction": "RFUMSV00 et al.",
                   "closingDay": 4,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T13"],
-                  "afc": { "type": "Manuell", "duration": 120, "jobName": null },
-                  "status": "Entwurf",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T13"
+                  ],
+                  "afc": {
+                    "type": "Manual",
+                    "duration": 120,
+                    "jobName": null
+                  },
+                  "status": "Draft",
                   "comments": []
                 },
                 {
                   "id": "T16",
-                  "name": "Ertragsteuerrückstellung berechnen",
-                  "description": "Laufende und latente Steuern ermitteln und buchen.",
+                  "name": "Calculate income tax provision",
+                  "description": "Determine and post current and deferred taxes.",
                   "harmonized": true,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": true, "variant": null },
-                    "CN": { "applies": true, "variant": null }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": null
+                    }
                   },
-                  "owner": "Steuern",
-                  "raci": { "r": "Tax Accountant", "a": "Head of Tax" },
+                  "owner": "Tax",
+                  "raci": {
+                    "r": "Tax Accountant",
+                    "a": "Head of Tax"
+                  },
                   "system": "SAP S/4 / Tax Tool",
                   "transaction": null,
                   "closingDay": 5,
-                  "frequency": "quartalsweise",
-                  "dependsOn": ["T15"],
-                  "afc": { "type": "Manuell", "duration": 180, "jobName": null },
-                  "status": "Entwurf",
+                  "frequency": "Quarterly",
+                  "dependsOn": [
+                    "T15"
+                  ],
+                  "afc": {
+                    "type": "Manual",
+                    "duration": 180,
+                    "jobName": null
+                  },
+                  "status": "Draft",
                   "comments": []
                 }
               ]
@@ -452,76 +848,145 @@
         },
         {
           "id": "G5",
-          "name": "Abschluss & Reporting",
+          "name": "Closing & Reporting",
           "processes": [
             {
               "id": "P10",
-              "name": "Periodenabschluss und Konzernmeldung",
+              "name": "Period-End Close and Group Reporting",
               "tasks": [
                 {
                   "id": "T17",
-                  "name": "Buchungsperiode Hauptbuch schließen",
-                  "description": "Periode im Hauptbuch für Buchungen sperren.",
+                  "name": "Close General Ledger posting period",
+                  "description": "Lock the period in the general ledger for postings.",
                   "harmonized": true,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": true, "variant": null },
-                    "CN": { "applies": true, "variant": null }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": null
+                    }
                   },
-                  "owner": "Hauptbuchhaltung",
-                  "raci": { "r": "GL Accountant", "a": "Local Accounting Manager" },
+                  "owner": "General Ledger",
+                  "raci": {
+                    "r": "GL Accountant",
+                    "a": "Local Accounting Manager"
+                  },
                   "system": "SAP S/4",
                   "transaction": "OB52",
                   "closingDay": 5,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T7", "T8", "T10", "T14", "T15"],
-                  "afc": { "type": "Meilenstein", "duration": 15, "jobName": null },
-                  "status": "Entwurf",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T7",
+                    "T8",
+                    "T10",
+                    "T14",
+                    "T15"
+                  ],
+                  "afc": {
+                    "type": "Milestone",
+                    "duration": 15,
+                    "jobName": null
+                  },
+                  "status": "Draft",
                   "comments": []
                 },
                 {
                   "id": "T18",
-                  "name": "Konzernmeldung übermitteln",
-                  "description": "Reporting-Package an die Konsolidierung übergeben (Group Reporting).",
+                  "name": "Submit group reporting",
+                  "description": "Hand over the reporting package to consolidation (Group Reporting).",
                   "harmonized": true,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": true, "variant": null },
-                    "CN": { "applies": true, "variant": null }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": null
+                    }
                   },
-                  "owner": "Lokales Accounting",
-                  "raci": { "r": "Local Accounting Manager", "a": "Local CFO" },
+                  "owner": "Local Accounting",
+                  "raci": {
+                    "r": "Local Accounting Manager",
+                    "a": "Local CFO"
+                  },
                   "system": "SAP Group Reporting",
                   "transaction": "Data Release",
                   "closingDay": 6,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T16", "T17"],
-                  "afc": { "type": "Workflow", "duration": 60, "jobName": null },
-                  "status": "Entwurf",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T16",
+                    "T17"
+                  ],
+                  "afc": {
+                    "type": "Workflow",
+                    "duration": 60,
+                    "jobName": null
+                  },
+                  "status": "Draft",
                   "comments": []
                 },
                 {
                   "id": "T19",
-                  "name": "Management-Reporting erstellen",
-                  "description": "Lokales Management-Reporting und Kommentierung.",
+                  "name": "Prepare management reporting",
+                  "description": "Local management reporting and commentary.",
                   "harmonized": false,
                   "countries": {
-                    "DE": { "applies": true, "variant": null },
-                    "FR": { "applies": true, "variant": null },
-                    "US": { "applies": true, "variant": "Zusätzliches Board-Package", "reason": "Lokale Governance" },
-                    "CN": { "applies": true, "variant": null }
+                    "DE": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "FR": {
+                      "applies": true,
+                      "variant": null
+                    },
+                    "US": {
+                      "applies": true,
+                      "variant": "Additional board package",
+                      "reason": "Local governance"
+                    },
+                    "CN": {
+                      "applies": true,
+                      "variant": null
+                    }
                   },
                   "owner": "Controlling",
-                  "raci": { "r": "Controller", "a": "Local CFO" },
+                  "raci": {
+                    "r": "Controller",
+                    "a": "Local CFO"
+                  },
                   "system": "SAC / Excel",
                   "transaction": null,
                   "closingDay": 8,
-                  "frequency": "monatlich",
-                  "dependsOn": ["T18"],
-                  "afc": { "type": "Manuell", "duration": 240, "jobName": null },
-                  "status": "Entwurf",
+                  "frequency": "Monthly",
+                  "dependsOn": [
+                    "T18"
+                  ],
+                  "afc": {
+                    "type": "Manual",
+                    "duration": 240,
+                    "jobName": null
+                  },
+                  "status": "Draft",
                   "comments": []
                 }
               ]

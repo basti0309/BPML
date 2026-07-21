@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BPML – Einzelabschlüsse & AFC-Design</title>
+  <title>BPML – Single-Entity Closings & AFC Design</title>
   <link rel="stylesheet" href="css/diagram-js.css" />
   <link rel="stylesheet" href="css/bpmn-js.css" />
   <link rel="stylesheet" href="css/app.css" />
@@ -14,28 +14,28 @@
     <div class="brand">
       <span class="brand-icon">📋</span>
       <div>
-        <h1 id="app-title">BPML Einzelabschlüsse</h1>
+        <h1 id="app-title">BPML Single-Entity Closings</h1>
         <span id="app-client" class="muted"></span>
       </div>
     </div>
     <nav class="tabs" id="nav-tabs">
-      <button data-view="table" class="active">BPML-Tabelle</button>
-      <button data-view="matrix">Länder-Matrix</button>
-      <button data-view="calendar">Closing-Kalender</button>
-      <button data-view="bpmn">Prozess-Flow (BPMN)</button>
-      <button data-view="afc">AFC-Design</button>
+      <button data-view="table" class="active">BPML Table</button>
+      <button data-view="matrix">Country Matrix</button>
+      <button data-view="calendar">Closing Calendar</button>
+      <button data-view="bpmn">Process Flow (BPMN)</button>
+      <button data-view="afc">AFC Design</button>
     </nav>
     <div class="toolbar">
-      <button id="btn-undo" title="Rückgängig (Strg+Z)" disabled>↶</button>
-      <button id="btn-redo" title="Wiederherstellen (Strg+Umschalt+Z)" disabled>↷</button>
-      <button id="btn-editor" title="Bearbeiter-Name (für Protokoll & Kommentare)">👤</button>
-      <button id="btn-countries" title="Länder verwalten (hinzufügen / löschen)">🌐</button>
-      <button id="btn-import-excel" title="Excel-Datei (.xlsx) importieren – lädt auch von dieser App exportierte Stände">⬆ Excel</button>
-      <button id="btn-import-json" title="JSON-Snapshot importieren">⬆ JSON</button>
-      <button id="btn-export-excel" title="Formatiertes Excel-Workbook (6 Blätter) exportieren">⬇ Excel</button>
-      <button id="btn-export-json" title="Aktuellen Stand als JSON exportieren">⬇ JSON</button>
-      <button id="btn-log" title="Änderungsprotokoll anzeigen">🕘</button>
-      <button id="btn-reset" title="Auf Seed-Daten zurücksetzen" class="danger">↺</button>
+      <button id="btn-undo" title="Undo (Ctrl+Z)" disabled>↶</button>
+      <button id="btn-redo" title="Redo (Ctrl+Shift+Z)" disabled>↷</button>
+      <button id="btn-editor" title="Editor name (for change log & comments)">👤</button>
+      <button id="btn-countries" title="Manage countries (add / delete)">🌐</button>
+      <button id="btn-import-excel" title="Import Excel (.xlsx) – also loads states exported by this app">⬆ Excel</button>
+      <button id="btn-import-json" title="Import JSON snapshot">⬆ JSON</button>
+      <button id="btn-export-excel" title="Export formatted Excel workbook (6 sheets)">⬇ Excel</button>
+      <button id="btn-export-json" title="Export current state as JSON">⬇ JSON</button>
+      <button id="btn-log" title="Show change log">🕘</button>
+      <button id="btn-reset" title="Reset to seed data" class="danger">↺</button>
     </div>
   </header>
 

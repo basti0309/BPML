@@ -27,16 +27,16 @@ export function closeDrawer() {
 }
 
 export function fmtDay(d) {
-  if (d === 0) return 'WT0';
-  return d > 0 ? `WT+${d}` : `WT${d}`;
+  if (d === 0) return 'WD0';
+  return d > 0 ? `WD+${d}` : `WD${d}`;
 }
 
 export function statusChip(status) {
-  const cls = status === 'Final' ? 'ok' : status === 'In Abstimmung' ? 'warn' : 'info';
+  const cls = status === 'Final' ? 'ok' : status === 'In Review' ? 'warn' : 'info';
   return `<span class="chip ${cls}">${escapeHtml(status || '–')}</span>`;
 }
 
-/** Öffnet den Editor für einen Task. */
+/** Opens the editor for a task. */
 export function openTaskEditor(taskId) {
   const hit = taskById(taskId);
   if (!hit) return;
@@ -49,7 +49,7 @@ export function openTaskEditor(taskId) {
   const typeOpts = meta.afcTaskTypes
     .map((s) => `<option ${s === (task.afc?.type || '') ? 'selected' : ''}>${escapeHtml(s)}</option>`)
     .join('');
-  const freqOpts = ['monatlich', 'quartalsweise', 'jährlich']
+  const freqOpts = ['Monthly', 'Quarterly', 'Yearly']
     .map((s) => `<option ${s === task.frequency ? 'selected' : ''}>${s}</option>`)
     .join('');
 
@@ -79,11 +79,11 @@ export function openTaskEditor(taskId) {
         <span class="code" title="${escapeHtml(c.name)}">${c.code}</span>
         <select class="c-applies">
           <option value="std" ${cc.applies !== false && !cc.variant ? 'selected' : ''}>Standard</option>
-          <option value="var" ${cc.applies !== false && cc.variant ? 'selected' : ''}>Abweichung</option>
+          <option value="var" ${cc.applies !== false && cc.variant ? 'selected' : ''}>Deviation</option>
           <option value="na" ${cc.applies === false ? 'selected' : ''}>n/a</option>
         </select>
-        <input class="c-variant" placeholder="Abweichung (kurz)" value="${escapeHtml(cc.variant || '')}" />
-        <input class="c-reason" placeholder="Begründung" value="${escapeHtml(cc.reason || '')}" />
+        <input class="c-variant" placeholder="Deviation (short)" value="${escapeHtml(cc.variant || '')}" />
+        <input class="c-reason" placeholder="Reason" value="${escapeHtml(cc.reason || '')}" />
       </div>`;
     })
     .join('');
@@ -97,13 +97,13 @@ export function openTaskEditor(taskId) {
     <div class="muted">${escapeHtml(area.name)} › ${escapeHtml(group.name)} › ${escapeHtml(proc.name)}</div>
 
     <div class="form-grid" id="task-form">
-      <label class="full">Task-Name
+      <label class="full">Task name
         <input id="f-name" value="${escapeHtml(task.name)}" />
       </label>
-      <label class="full">Beschreibung
+      <label class="full">Description
         <textarea id="f-desc">${escapeHtml(task.description || '')}</textarea>
       </label>
-      <label>Verantwortlich (Org.)
+      <label>Responsible (org.)
         <input id="f-owner" value="${escapeHtml(task.owner || '')}" />
       </label>
       <label>Status
@@ -118,55 +118,55 @@ export function openTaskEditor(taskId) {
       <label>System
         <input id="f-system" value="${escapeHtml(task.system || '')}" />
       </label>
-      <label>Transaktion / App / Job
+      <label>Transaction / app / job
         <input id="f-txn" value="${escapeHtml(task.transaction || '')}" />
       </label>
-      <label>Closing Day (Workday-Offset)
+      <label>Closing day (workday offset)
         <input id="f-day" type="number" step="1" value="${task.closingDay ?? 0}" />
       </label>
-      <label>Frequenz
+      <label>Frequency
         <select id="f-freq">${freqOpts}</select>
       </label>
-      <label>AFC-Task-Typ
+      <label>AFC task type
         <select id="f-afc-type">${typeOpts}</select>
       </label>
-      <label>Geplante Dauer (Min)
+      <label>Planned duration (min)
         <input id="f-afc-dur" type="number" min="0" value="${task.afc?.duration ?? ''}" />
       </label>
-      <label>Job-Name (bei Typ Job)
+      <label>Job name (for type Job)
         <input id="f-afc-job" value="${escapeHtml(task.afc?.jobName || '')}" />
       </label>
-      <label>Harmonisiert (Global Template)
+      <label>Harmonized (global template)
         <select id="f-harm">
-          <option value="1" ${task.harmonized ? 'selected' : ''}>ja</option>
-          <option value="0" ${!task.harmonized ? 'selected' : ''}>nein</option>
+          <option value="1" ${task.harmonized ? 'selected' : ''}>yes</option>
+          <option value="0" ${!task.harmonized ? 'selected' : ''}>no</option>
         </select>
       </label>
-      <label class="full">Vorgänger (Mehrfachauswahl mit Strg/Cmd)
+      <label class="full">Predecessors (multi-select with Ctrl/Cmd)
         <select id="f-deps" multiple size="4">${depOpts}</select>
       </label>
-      <label class="full">Prozess (Verschieben nach…)
+      <label class="full">Process (move to…)
         <select id="f-move">${procOpts}</select>
       </label>
     </div>
 
     <fieldset class="country-block" id="country-block">
-      <legend>Länder-Scope & Abweichungen</legend>
+      <legend>Country scope & deviations</legend>
       ${countryRows}
     </fieldset>
 
     <div class="drawer-actions">
-      <button class="btn primary" id="f-save">Speichern</button>
-      <button class="btn" id="f-goto-bpmn" title="Prozess im BPMN-Flow anzeigen">Prozess-Flow ↗</button>
-      <button class="btn" id="f-delete" style="margin-left:auto;color:var(--bad)">Löschen</button>
+      <button class="btn primary" id="f-save">Save</button>
+      <button class="btn" id="f-goto-bpmn" title="Show process in the BPMN flow">Process flow ↗</button>
+      <button class="btn" id="f-delete" style="margin-left:auto;color:var(--bad)">Delete</button>
     </div>
 
     <div class="comments">
-      <b>Kommentare</b>
-      ${comments || '<div class="muted">Noch keine Kommentare.</div>'}
+      <b>Comments</b>
+      ${comments || '<div class="muted">No comments yet.</div>'}
       <div class="comment-add">
         <input id="c-who" placeholder="Name" style="max-width:110px" value="${escapeHtml(getEditor())}" />
-        <input id="c-text" placeholder="Kommentar für den Workshop…" />
+        <input id="c-text" placeholder="Comment for the workshop…" />
         <button class="btn" id="c-add">+</button>
       </div>
     </div>
@@ -182,7 +182,7 @@ export function openTaskEditor(taskId) {
       const variant = row.querySelector('.c-variant').value.trim();
       const reason = row.querySelector('.c-reason').value.trim();
       if (mode === 'na') countries[code] = { applies: false, variant: null };
-      else if (mode === 'var') countries[code] = { applies: true, variant: variant || 'Abweichung (Details offen)', reason: reason || null };
+      else if (mode === 'var') countries[code] = { applies: true, variant: variant || 'Deviation (details pending)', reason: reason || null };
       else countries[code] = { applies: true, variant: null };
     });
     updateTask(task.id, {
@@ -207,14 +207,14 @@ export function openTaskEditor(taskId) {
     const targetProc = q('#f-move').value;
     if (targetProc && targetProc !== proc.id) moveNode(task.id, targetProc);
     closeDrawer();
-    showToast(`${task.id} gespeichert.`);
+    showToast(`${task.id} saved.`);
   };
 
   q('#f-delete').onclick = () => {
-    if (confirm(`Task ${task.id} „${task.name}“ wirklich löschen?`)) {
+    if (confirm(`Delete task ${task.id} “${task.name}”?`)) {
       deleteTask(task.id);
       closeDrawer();
-      showToast(`${task.id} gelöscht.`);
+      showToast(`${task.id} deleted.`);
     }
   };
 
@@ -229,11 +229,11 @@ export function openTaskEditor(taskId) {
     const text = q('#c-text').value.trim();
     if (!text) return;
     addComment(task.id, q('#c-who').value.trim(), text);
-    openTaskEditor(task.id); // neu rendern
+    openTaskEditor(task.id); // re-render
   };
 }
 
-/** Länder verwalten: hinzufügen, umbenennen, Code/Buchungskreise ändern, löschen. */
+/** Manage countries: add, rename, change code/company codes, delete. */
 export function openCountryManager() {
   const meta = getData().meta;
   const nTasks = allTasks().length;
@@ -242,26 +242,26 @@ export function openCountryManager() {
       (c) => `<tr data-code="${escapeHtml(c.code)}">
         <td><input class="cm-code" value="${escapeHtml(c.code)}" maxlength="6" /></td>
         <td><input class="cm-name" value="${escapeHtml(c.name || '')}" /></td>
-        <td><input class="cm-ent" value="${escapeHtml((c.entities || []).join(', '))}" placeholder="Buchungskreise, kommagetrennt" /></td>
-        <td><button class="btn mini danger cm-del" title="Land löschen">🗑</button></td>
+        <td><input class="cm-ent" value="${escapeHtml((c.entities || []).join(', '))}" placeholder="Company codes, comma-separated" /></td>
+        <td><button class="btn mini danger cm-del" title="Delete country">🗑</button></td>
       </tr>`
     )
     .join('');
 
   openDrawerHtml(`
-    <h2>Länder verwalten</h2>
+    <h2>Manage Countries</h2>
     <div class="muted" style="margin-bottom:10px">
-      Code (z.B. DE), Name und optionale Buchungskreise. Ein neues Land wird bei allen ${nTasks} Tasks
-      zunächst als „Standard“ angelegt; Löschen entfernt es aus der Matrix und aus allen Tasks.
+      Code (e.g. DE), name and optional company codes. A new country is initially added as “Standard”
+      for all ${nTasks} tasks; deleting removes it from the matrix and from every task.
     </div>
     <table class="cm-table">
-      <thead><tr><th style="width:74px">Code</th><th>Name</th><th>Buchungskreise</th><th style="width:34px"></th></tr></thead>
-      <tbody id="cm-body">${rows || '<tr><td colspan="4" class="muted">Noch keine Länder.</td></tr>'}</tbody>
+      <thead><tr><th style="width:74px">Code</th><th>Name</th><th>Company codes</th><th style="width:34px"></th></tr></thead>
+      <tbody id="cm-body">${rows || '<tr><td colspan="4" class="muted">No countries yet.</td></tr>'}</tbody>
     </table>
     <div class="cm-add">
       <input id="cm-new-code" placeholder="Code" maxlength="6" />
       <input id="cm-new-name" placeholder="Name" />
-      <button class="btn primary" id="cm-add-btn">+ Land hinzufügen</button>
+      <button class="btn primary" id="cm-add-btn">+ Add country</button>
     </div>
   `);
 
@@ -284,16 +284,16 @@ export function openCountryManager() {
     const del = e.target.closest('.cm-del');
     if (!del) return;
     const code = del.closest('tr[data-code]').dataset.code;
-    if (confirm(`Land „${code}“ wirklich löschen? Es wird aus allen Tasks entfernt.`)) {
+    if (confirm(`Delete country “${code}”? It will be removed from every task.`)) {
       deleteCountry(code);
       openCountryManager();
-      showToast(`Land ${code} gelöscht.`);
+      showToast(`Country ${code} deleted.`);
     }
   });
   document.getElementById('cm-add-btn').onclick = () => {
     const res = addCountry(document.getElementById('cm-new-code').value, document.getElementById('cm-new-name').value);
     if (res && res.error) { showToast(res.error, 5000); return; }
     openCountryManager();
-    showToast(`Land ${res.code} hinzugefügt.`);
+    showToast(`Country ${res.code} added.`);
   };
 }

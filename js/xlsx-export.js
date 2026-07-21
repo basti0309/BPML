@@ -11,15 +11,15 @@ const C = {
   white: 'FFFFFFFF', ink: 'FF1E2733', muted: 'FF66748A', line: 'FFD7DEE9', zebra: 'FFF5F8FC',
 };
 const TYPE_COLOR = {
-  Manuell: 'FF0A6ED1', Job: 'FF6C4FB3', Workflow: 'FF0E7D74', Prüfung: 'FFB8860B', Meilenstein: 'FF334A63',
+  Manual: 'FF0A6ED1', Job: 'FF6C4FB3', Workflow: 'FF0E7D74', Check: 'FFB8860B', Milestone: 'FF334A63',
 };
 const FONT = 'Arial';
 const thin = { style: 'thin', color: { argb: C.line } };
 const BORDER = { top: thin, left: thin, bottom: thin, right: thin };
 
-// ---- kleine Helfer ---------------------------------------------------------
+// ---- small helpers ---------------------------------------------------------
 const fill = (argb) => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
-const fmtDay = (d) => (d === 0 ? 'WT0' : d > 0 ? `WT+${d}` : `WT${d}`);
+const fmtDay = (d) => (d === 0 ? 'WD0' : d > 0 ? `WD+${d}` : `WD${d}`);
 const stamp = () => new Date().toISOString().slice(0, 10);
 
 function styleHeaderRow(row, lastCol) {
@@ -75,7 +75,7 @@ function findCycles(tasks) {
 
 function statusFill(status) {
   if (status === 'Final') return { bg: C.okSoft, fg: C.ok };
-  if (status === 'In Abstimmung') return { bg: C.warnSoft, fg: C.warn };
+  if (status === 'In Review') return { bg: C.warnSoft, fg: C.warn };
   return { bg: C.naSoft, fg: C.muted };
 }
 
@@ -122,25 +122,25 @@ function buildDataSheet(wb, data) {
 
 // ---- 1) Deckblatt ----------------------------------------------------------
 function buildCover(ExcelJS, wb, data, meta, codes, allT, stats, cycles) {
-  const ws = wb.addWorksheet('Deckblatt', { views: [{ showGridLines: false }] });
+  const ws = wb.addWorksheet('Cover', { views: [{ showGridLines: false }] });
   ws.columns = [{ width: 3 }, { width: 26 }, { width: 26 }, { width: 26 }, { width: 26 }];
 
   ws.mergeCells('B2:E2');
   const t = ws.getCell('B2');
-  t.value = meta.title || 'BPML Einzelabschlüsse';
+  t.value = meta.title || 'BPML Single-Entity Closings';
   t.font = { name: FONT, size: 20, bold: true, color: { argb: C.navy } };
   ws.getRow(2).height = 30;
 
   ws.mergeCells('B3:E3');
   const sub = ws.getCell('B3');
-  sub.value = 'Business Process Master List · Export für Prozessdesign & SAP AFC';
+  sub.value = 'Business Process Master List · export for process design & SAP AFC';
   sub.font = { name: FONT, size: 11, italic: true, color: { argb: C.muted } };
 
   const metaRows = [
-    ['Kunde', meta.client || '–'],
-    ['Stand', stamp()],
-    ['Version', meta.version ? String(meta.version) : '0.9 (Entwurf)'],
-    ['Länder / Buchungskreise', codes.join(', ') || '–'],
+    ['Client', meta.client || '–'],
+    ['As of', stamp()],
+    ['Version', meta.version ? String(meta.version) : '0.9 (Draft)'],
+    ['Countries / company codes', codes.join(', ') || '–'],
   ];
   let r = 5;
   for (const [k, v] of metaRows) {
@@ -155,10 +155,10 @@ function buildCover(ExcelJS, wb, data, meta, codes, allT, stats, cycles) {
   // KPI-Kacheln
   r += 1;
   const kpis = [
-    ['Tasks gesamt', allT.length, C.accent],
-    ['Harmonisierungsgrad', `${stats.pct} %`, C.ok],
-    ['Länderabweichungen', stats.variant, C.warn],
-    ['Standard-Zellen', stats.std, C.navy],
+    ['Tasks total', allT.length, C.accent],
+    ['Harmonization', `${stats.pct} %`, C.ok],
+    ['Country deviations', stats.variant, C.warn],
+    ['Standard cells', stats.std, C.navy],
   ];
   const kpiRow = r;
   kpis.forEach((k, i) => {
@@ -179,12 +179,12 @@ function buildCover(ExcelJS, wb, data, meta, codes, allT, stats, cycles) {
 
   // Legende
   r = kpiRow + 3;
-  sectionLabel(ws, `B${r}`, 'Legende');
+  sectionLabel(ws, `B${r}`, 'Legend');
   const legend = [
-    ['✓  Standard – Teil des Global Template', C.ok],
-    ['◐  Abweichung – lokale Besonderheit (Kommentar zeigt Details)', C.warn],
-    ['–  nicht relevant für dieses Land', C.na],
-    ['AFC-Typ: Manuell · Job · Workflow · Prüfung · Meilenstein (Farbe im Kalender)', C.accent],
+    ['✓  Standard – part of the global template', C.ok],
+    ['◐  Deviation – local specificity (comment shows details)', C.warn],
+    ['–  not relevant for this country', C.na],
+    ['AFC type: Manual · Job · Workflow · Check · Milestone (color in the calendar)', C.accent],
   ];
   r++;
   for (const [text, argb] of legend) {
@@ -198,20 +198,20 @@ function buildCover(ExcelJS, wb, data, meta, codes, allT, stats, cycles) {
 
   // Konsistenz-Checks
   r += 1;
-  sectionLabel(ws, `B${r}`, 'Konsistenz-Checks für den AFC-Import');
+  sectionLabel(ws, `B${r}`, 'Consistency checks for the AFC import');
   r++;
   const missing = [];
   for (const t of allT) {
     const m = [];
-    if (!t.afc?.type) m.push('AFC-Typ');
-    if (t.closingDay === null || t.closingDay === undefined) m.push('Closing Day');
-    if (!(t.raci?.r || t.owner)) m.push('Verantwortlicher');
-    if (t.afc?.type === 'Job' && !t.afc?.jobName) m.push('Job-Name');
-    if (m.length) missing.push(`${t.id} – fehlt: ${m.join(', ')}`);
+    if (!t.afc?.type) m.push('AFC type');
+    if (t.closingDay === null || t.closingDay === undefined) m.push('Closing day');
+    if (!(t.raci?.r || t.owner)) m.push('Responsible');
+    if (t.afc?.type === 'Job' && !t.afc?.jobName) m.push('Job name');
+    if (m.length) missing.push(`${t.id} – missing: ${m.join(', ')}`);
   }
   const checks = [
-    missing.length ? `⚠  ${missing.length} Task(s) mit fehlenden Pflichtangaben` : '✓  Alle Tasks mit Typ, Offset & Verantwortlichem',
-    cycles.length ? `⚠  ${cycles.length} zyklische Abhängigkeit(en)` : '✓  Keine zyklischen Abhängigkeiten',
+    missing.length ? `⚠  ${missing.length} task(s) with missing required fields` : '✓  All tasks have type, offset & responsible',
+    cycles.length ? `⚠  ${cycles.length} cyclic dependency(ies)` : '✓  No cyclic dependencies',
   ];
   for (const line of checks) {
     ws.mergeCells(`B${r}:E${r}`);
@@ -243,9 +243,9 @@ function buildBpml(wb, data) {
     pageSetup: { orientation: 'landscape', fitToWidth: 1, fitToHeight: 0 },
   });
   const cols = [
-    ['ID', 9], ['Task', 40], ['Beschreibung', 42], ['R', 18], ['A', 18], ['System', 14],
-    ['Transaktion', 16], ['AFC-Typ', 12], ['WT', 8], ['Dauer', 8], ['Job', 16],
-    ['Frequenz', 13], ['Vorgänger', 14], ['Harmon.', 12], ['Status', 15],
+    ['ID', 9], ['Task', 40], ['Description', 42], ['R', 18], ['A', 18], ['System', 14],
+    ['Transaction', 16], ['AFC type', 12], ['WD', 8], ['Duration', 8], ['Job', 16],
+    ['Frequency', 13], ['Predecessors', 14], ['Harmon.', 12], ['Status', 15],
   ];
   const LAST = cols.length;
   ws.columns = cols.map(([, w]) => ({ width: w }));
@@ -254,7 +254,7 @@ function buildBpml(wb, data) {
 
   for (const area of data.areas || []) {
     const nTasks = (area.groups || []).reduce((n, g) => n + g.processes.reduce((m, p) => m + p.tasks.length, 0), 0);
-    const aRow = ws.addRow([`▾  ${area.name}   (${nTasks} Tasks)`]);
+    const aRow = ws.addRow([`▾  ${area.name}   (${nTasks} tasks)`]);
     aRow.outlineLevel = 0;
     ws.mergeCells(aRow.number, 1, aRow.number, LAST);
     styleBand(aRow, C.navy, C.white, 12);
@@ -319,7 +319,7 @@ function styleTaskRow(row, lastCol) {
 
 // ---- 3) Länder-Matrix ------------------------------------------------------
 function buildMatrix(wb, data, meta, codes) {
-  const ws = wb.addWorksheet('Länder-Matrix', {
+  const ws = wb.addWorksheet('Country Matrix', {
     views: [{ state: 'frozen', xSplit: 1, ySplit: 1, showGridLines: false }],
   });
   ws.columns = [{ width: 46 }, ...codes.map(() => ({ width: 8 }))];
@@ -333,7 +333,7 @@ function buildMatrix(wb, data, meta, codes) {
       const gTasks = group.processes.flatMap((p) => p.tasks);
       if (!gTasks.length) continue;
       const gs = harmonization(gTasks, codes);
-      const gRow = ws.addRow([`${group.name}          harmonisiert: ${gs.pct} %`]);
+      const gRow = ws.addRow([`${group.name}          harmonized: ${gs.pct} %`]);
       ws.mergeCells(gRow.number, 1, gRow.number, LAST);
       const gc = gRow.getCell(1);
       gc.font = { name: FONT, size: 10.5, bold: true, color: { argb: gs.pct >= 90 ? C.ok : gs.pct >= 70 ? C.warn : C.crit } };
@@ -369,13 +369,13 @@ function buildMatrix(wb, data, meta, codes) {
 
 // ---- 4) Länderspezifika ----------------------------------------------------
 function buildSpecifics(wb, data, meta) {
-  const ws = wb.addWorksheet('Länderspezifika', {
+  const ws = wb.addWorksheet('Country Specifics', {
     views: [{ state: 'frozen', ySplit: 1, showGridLines: false }],
     pageSetup: { orientation: 'landscape', fitToWidth: 1, fitToHeight: 0 },
   });
   const cols = [
-    ['Bereich', 26], ['Prozessgruppe', 26], ['Prozess', 24], ['Task-ID', 9], ['Task', 34],
-    ['Land', 8], ['Abweichung', 38], ['Begründung', 28], ['Status', 15], ['Bestätigt', 11],
+    ['Area', 26], ['Process Group', 26], ['Process', 24], ['Task ID', 9], ['Task', 34],
+    ['Country', 8], ['Deviation', 38], ['Reason', 28], ['Status', 15], ['Confirmed', 11],
   ];
   const LAST = cols.length;
   ws.columns = cols.map(([, w]) => ({ width: w }));
@@ -411,7 +411,7 @@ function buildSpecifics(wb, data, meta) {
     }
   }
   if (!any) {
-    const row = ws.addRow(['Keine Länderabweichungen – alle Tasks sind harmonisiert.']);
+    const row = ws.addRow(['No country deviations – all tasks are harmonized.']);
     ws.mergeCells(row.number, 1, row.number, LAST);
     row.getCell(1).font = { name: FONT, size: 10, italic: true, color: { argb: C.muted } };
   }
@@ -420,7 +420,7 @@ function buildSpecifics(wb, data, meta) {
 
 // ---- 5) Abschlusskalender --------------------------------------------------
 function buildCalendar(wb, data, meta, allT) {
-  const ws = wb.addWorksheet('Abschlusskalender', {
+  const ws = wb.addWorksheet('Closing Calendar', {
     views: [{ state: 'frozen', xSplit: 2, ySplit: 1, showGridLines: false }],
     pageSetup: { orientation: 'landscape', fitToWidth: 1, fitToHeight: 0 },
   });
@@ -432,7 +432,7 @@ function buildCalendar(wb, data, meta, allT) {
 
   ws.columns = [{ width: 24 }, { width: 40 }, ...dayList.map(() => ({ width: 7 }))];
   const LAST = 2 + dayList.length;
-  const header = ws.addRow(['Prozessgruppe', 'Task', ...dayList.map(fmtDay)]);
+  const header = ws.addRow(['Process Group', 'Task', ...dayList.map(fmtDay)]);
   styleHeaderRow(header, LAST);
   dayList.forEach((d, i) => {
     const cell = header.getCell(3 + i);
@@ -454,8 +454,8 @@ function buildCalendar(wb, data, meta, allT) {
         row.getCell(2).font = { name: FONT, size: 9.5, color: { argb: C.ink } };
         row.getCell(2).alignment = { vertical: 'middle' };
         row.getCell(2).border = BORDER;
-        const type = task.afc?.type || 'Manuell';
-        const argb = TYPE_COLOR[type] || TYPE_COLOR.Manuell;
+        const type = task.afc?.type || 'Manual';
+        const argb = TYPE_COLOR[type] || TYPE_COLOR.Manual;
         dayList.forEach((d, i) => {
           const cell = row.getCell(3 + i);
           cell.border = BORDER;
@@ -471,14 +471,14 @@ function buildCalendar(wb, data, meta, allT) {
       }
     }
   // Legende
-  const leg = ws.addRow(['Legende', 'Manuell · Job · Workflow · Prüfung · Meilenstein   |   WT0 = Periodenstichtag']);
+  const leg = ws.addRow(['Legend', 'Manual · Job · Workflow · Check · Milestone   |   WD0 = period-end date']);
   leg.getCell(1).font = { name: FONT, size: 9, bold: true, color: { argb: C.accent } };
   leg.getCell(2).font = { name: FONT, size: 9, color: { argb: C.muted } };
 }
 
 // ---- 6) AFC-Task-Liste -----------------------------------------------------
 function buildAfc(wb, data) {
-  const ws = wb.addWorksheet('AFC-Task-Liste', {
+  const ws = wb.addWorksheet('AFC Task List', {
     views: [{ state: 'frozen', ySplit: 1, showGridLines: false }],
     pageSetup: { orientation: 'landscape', fitToWidth: 1, fitToHeight: 0 },
   });
@@ -498,7 +498,7 @@ function buildAfc(wb, data) {
       .map(([code, c]) => (c.variant ? `${code}*` : code))
       .join(', ');
     const row = ws.addRow([
-      group.name, task.id, task.name, task.afc?.type || 'Manuell', task.closingDay ?? 0,
+      group.name, task.id, task.name, task.afc?.type || 'Manual', task.closingDay ?? 0,
       task.raci?.r || task.owner || '', task.raci?.a || '', task.afc?.duration ?? '', task.afc?.jobName || '',
       (task.dependsOn || []).join(', '), task.frequency || '', scope, task.status || '',
     ]);

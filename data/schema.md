@@ -1,80 +1,81 @@
-# Datenmodell & Excel-Mapping
+# Data model & Excel mapping
 
-Die App hält alle Daten in einer JSON-Struktur (`data/bpml.json` als versionierter Seed,
-zur Laufzeit im Browser-localStorage). Jeder Export ist ein vollständiger Snapshot.
+The app keeps all data in one JSON structure (`data/bpml.json` as the versioned seed,
+in the browser's localStorage at runtime). Every export is a complete snapshot.
 
-## Hierarchie
+## Hierarchy
 
-| Ebene | Feld | Bedeutung | Beispiel |
+| Level | Field | Meaning | Example |
 |---|---|---|---|
-| L1 | `areas[]` | Prozessbereich | Record to Report – Abschluss |
-| L2 | `areas[].groups[]` | Prozessgruppe | Hauptbuch, Intercompany |
-| L3 | `groups[].processes[]` | Prozess | Rückstellungen und Abgrenzungen |
-| L4 | `processes[].tasks[]` | Task (AFC-relevante Einheit) | Abschreibungslauf durchführen |
+| L1 | `areas[]` | Process area | Record to Report – Close |
+| L2 | `areas[].groups[]` | Process group | General Ledger, Intercompany |
+| L3 | `groups[].processes[]` | Process | Provisions and Accruals |
+| L4 | `processes[].tasks[]` | Task (AFC-relevant unit) | Run depreciation |
 
-## Task-Felder
+## Task fields
 
-| Feld | Typ | Bedeutung |
+| Field | Type | Meaning |
 |---|---|---|
-| `id` | string | Eindeutige ID (T1, T2, …) |
-| `name` | string | Task-Bezeichnung |
-| `description` | string | Beschreibung / Arbeitsanweisung |
-| `harmonized` | bool | Teil des harmonisierten Global Template? |
-| `countries` | map | Je Land: `applies` (relevant?), `variant` (Abweichungstext oder null = Standard), `reason` (Begründung) |
-| `owner` | string | Verantwortliche Organisationseinheit |
+| `id` | string | Unique ID (T1, T2, …) |
+| `name` | string | Task name |
+| `description` | string | Description / work instruction |
+| `harmonized` | bool | Part of the harmonized global template? |
+| `countries` | map | Per country: `applies` (relevant?), `variant` (deviation text, or null = standard), `reason` |
+| `owner` | string | Responsible organizational unit |
 | `raci` | object | `r` = Responsible, `a` = Accountable |
-| `system` | string | System (SAP S/4, AFC, lokale Tools …) |
-| `transaction` | string | Transaktion / Fiori-App / Job |
-| `closingDay` | int | Workday-Offset zum Stichtag (−5 … +12, 0 = Ultimo) |
-| `frequency` | string | monatlich / quartalsweise / jährlich |
-| `dependsOn` | string[] | Vorgänger-Task-IDs (steuert Kalender & BPMN) |
-| `afc` | object | `type` (Manuell/Job/Workflow/Prüfung/Meilenstein), `duration` (Minuten), `jobName` |
-| `status` | string | Entwurf / In Abstimmung / Final |
-| `comments` | array | Workshop-Kommentare `{who, when, text}` |
+| `system` | string | System (SAP S/4, AFC, local tools …) |
+| `transaction` | string | Transaction / Fiori app / job |
+| `closingDay` | int | Workday offset to the period-end date (−5 … +12, 0 = period-end) |
+| `frequency` | string | Monthly / Quarterly / Yearly |
+| `dependsOn` | string[] | Predecessor task IDs (drives calendar & BPMN) |
+| `afc` | object | `type` (Manual/Job/Workflow/Check/Milestone), `duration` (minutes), `jobName` |
+| `status` | string | Draft / In Review / Final |
+| `comments` | array | Workshop comments `{who, when, text}` |
 
-## Reihenfolge
+## Ordering
 
-Die Array-Reihenfolge (`areas`, `groups`, `processes`, `tasks`) ist zugleich die
-Anzeige- und Export-Reihenfolge. Drag & Drop in der Tabelle ändert genau diese
-Reihenfolge bzw. hängt Knoten in ein anderes Parent-Array um; IDs bleiben dabei
-stabil, `dependsOn`-Verweise bleiben gültig.
+The array order (`areas`, `groups`, `processes`, `tasks`) is also the display and export
+order. Drag & drop in the table changes exactly this order or re-parents nodes into a
+different parent array; IDs stay stable and `dependsOn` references remain valid.
 
 ## Meta
 
-- `meta.countries`: Länder mit Buchungskreisen (`entities`) – in der App über „🌐 Länder verwalten“ hinzufügbar, umbenennbar und löschbar
-- `meta.closingDayRange`: Anzeigebereich des Closing-Kalenders
-- `meta.statusValues`, `meta.afcTaskTypes`: Auswahllisten
+- `meta.countries`: countries with company codes (`entities`) – add, rename and delete them
+  in the app via “🌐 Manage countries”
+- `meta.closingDayRange`: display range of the closing calendar
+- `meta.statusValues`, `meta.afcTaskTypes`: pick lists
 
-## Excel-Import (In-App)
+## Excel import (in-app)
 
-Der Import (Button „Excel importieren") liest die erste Tabelle mit erkennbaren
-Spaltenüberschriften. Erwartete/erkannte Spalten (Groß-/Kleinschreibung egal,
-deutsche und englische Titel werden gemappt):
+The import (button “Import Excel”) reads the first sheet with recognizable column headers.
+Expected/recognized columns (case-insensitive; German and English titles are mapped):
 
-| Excel-Spalte (Aliasse) | Ziel-Feld |
+| Excel column (aliases) | Target field |
 |---|---|
-| Bereich / Area / L1 | Area-Name |
-| Prozessgruppe / Group / L2 | Group-Name |
-| Prozess / Process / L3 | Process-Name |
-| Task / Aktivität / Activity / L4 | `task.name` |
-| Beschreibung / Description | `task.description` |
-| Verantwortlich / Owner / Responsible | `task.owner` |
+| Area / Bereich / L1 | Area name |
+| Process Group / Group / L2 | Group name |
+| Process / Prozess / L3 | Process name |
+| Task / Activity / Aktivität / L4 | `task.name` |
+| Description / Beschreibung | `task.description` |
+| Responsible / Owner / Verantwortlich | `task.owner` |
 | System | `task.system` |
-| Transaktion / Transaction / TCode | `task.transaction` |
-| Tag / Closing Day / Workday / WT | `task.closingDay` (Zahl, „WT+3" → 3) |
-| Frequenz / Frequency | `task.frequency` |
-| Vorgänger / Predecessor / Depends | `task.dependsOn` (kommagetrennt) |
-| AFC-Typ / Task Type | `task.afc.type` |
+| Transaction / Transaktion / TCode | `task.transaction` |
+| WD / Closing Day / Workday / Tag | `task.closingDay` (number, “WD+3” → 3) |
+| Frequency / Frequenz | `task.frequency` |
+| Predecessors / Vorgänger / Depends | `task.dependsOn` (comma-separated) |
+| AFC Type / Task Type | `task.afc.type` |
 | Status | `task.status` |
-| Länderspalten (DE, FR, US, … oder Ländernamen) | `countries[XX]`: leer/`-`/`n/a` → nicht relevant, `x`/`✓`/`Standard` → Standard, sonstiger Text → Abweichung |
+| Country columns (DE, FR, US, … or country names) | `countries[XX]`: empty/`-`/`n/a` → not relevant, `x`/`✓`/`Standard` → standard, any other text → deviation |
 
-Nicht erkannte Spalten werden ignoriert und im Import-Dialog gemeldet.
-**Sobald die echte Kunden-Excel vorliegt, wird dieses Mapping an deren
-Spaltenlayout angepasst** (Phase-0-Punkt aus dem Plan).
+Unrecognized columns are ignored and reported in the import dialog.
+**Once the real customer Excel is available, this mapping will be adapted to its column
+layout** (phase-0 item from the plan).
 
-## AFC-Export
+> A workbook produced by this app additionally carries the full state in a hidden `_bpml`
+> sheet, so “⬆ Excel” reloads it losslessly.
 
-Der AFC-Export flacht die Hierarchie ab: Prozessgruppe → AFC-Ordner,
-Task → AFC-Task mit Feldern Typ, Offset (`closingDay`), Verantwortlicher,
-Dauer, Job-Name, Abhängigkeiten. Format: CSV (Spalten analog
-AFC-Task-Listen-Vorlage) und JSON.
+## AFC export
+
+The AFC export flattens the hierarchy: process group → AFC folder, task → AFC task with
+fields type, offset (`closingDay`), responsible, duration, job name, dependencies. Format:
+CSV (columns matching the AFC task-list template) and JSON.

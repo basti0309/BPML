@@ -41,7 +41,7 @@ function syncToolbar() {
   if (ed) {
     const name = getEditor();
     ed.textContent = name ? `👤 ${name}` : '👤';
-    ed.title = name ? `Bearbeiter: ${name} (klicken zum Ändern)` : 'Bearbeiter-Name setzen (für Protokoll & Kommentare)';
+    ed.title = name ? `Editor: ${name} (click to change)` : 'Set editor name (for change log & comments)';
   }
 }
 
@@ -71,25 +71,25 @@ async function main() {
   const fileExcel = document.getElementById('file-excel');
   const fileJson = document.getElementById('file-json');
 
-  document.getElementById('btn-undo').onclick = () => { if (undo()) showToast('Rückgängig gemacht.'); };
-  document.getElementById('btn-redo').onclick = () => { if (redo()) showToast('Wiederhergestellt.'); };
+  document.getElementById('btn-undo').onclick = () => { if (undo()) showToast('Undone.'); };
+  document.getElementById('btn-redo').onclick = () => { if (redo()) showToast('Redone.'); };
 
   document.getElementById('btn-editor').onclick = () => {
-    const name = prompt('Dein Name (erscheint im Änderungsprotokoll und bei Kommentaren):', getEditor());
-    if (name !== null) { setEditor(name); syncToolbar(); showToast(name.trim() ? `Bearbeiter: ${name.trim()}` : 'Bearbeiter zurückgesetzt.'); }
+    const name = prompt('Your name (appears in the change log and on comments):', getEditor());
+    if (name !== null) { setEditor(name); syncToolbar(); showToast(name.trim() ? `Editor: ${name.trim()}` : 'Editor name cleared.'); }
   };
 
   document.getElementById('btn-countries').onclick = () => openCountryManager();
 
-  // Tastenkürzel für Undo/Redo – nur außerhalb von Eingabefeldern (dort greift
-  // die native Text-Rückgängig-Funktion).
+  // Keyboard shortcuts for undo/redo – only outside input fields (native text
+  // undo applies there).
   window.addEventListener('keydown', (e) => {
     if (!(e.ctrlKey || e.metaKey)) return;
     const el = document.activeElement;
     if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
     const k = e.key.toLowerCase();
-    if (k === 'z' && !e.shiftKey) { e.preventDefault(); if (undo()) showToast('Rückgängig gemacht.'); }
-    else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); if (redo()) showToast('Wiederhergestellt.'); }
+    if (k === 'z' && !e.shiftKey) { e.preventDefault(); if (undo()) showToast('Undone.'); }
+    else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); if (redo()) showToast('Redone.'); }
   });
 
   document.getElementById('btn-import-excel').onclick = () => fileExcel.click();
@@ -97,9 +97,9 @@ async function main() {
   document.getElementById('btn-export-excel').onclick = async () => {
     try {
       await exportFormattedExcel(getData());
-      showToast('Excel-Export erstellt (6 Blätter: Deckblatt, BPML, Länder-Matrix, Länderspezifika, Kalender, AFC).', 5000);
+      showToast('Excel export created (6 sheets: Cover, BPML, Country Matrix, Country Specifics, Calendar, AFC).', 5000);
     } catch (err) {
-      showToast(`Excel-Export fehlgeschlagen: ${err.message}`, 7000);
+      showToast(`Excel export failed: ${err.message}`, 7000);
     }
   };
   document.getElementById('btn-export-json').onclick = () => exportJson();
@@ -112,15 +112,15 @@ async function main() {
       const res = await importExcelFile(f);
       let msg;
       if (res.snapshot) {
-        msg = `Stand aus „${f.name}“ geladen: ${res.tasks} Tasks.`;
+        msg = `State loaded from “${f.name}”: ${res.tasks} tasks.`;
       } else {
-        msg = `Excel importiert: ${res.tasks} Tasks aus „${res.sheet}“`;
-        if (res.countries.length) msg += `, Länder: ${res.countries.join(', ')}`;
-        if (res.unmapped.length) msg += ` – ignorierte Spalten: ${res.unmapped.join(', ')}`;
+        msg = `Excel imported: ${res.tasks} tasks from “${res.sheet}”`;
+        if (res.countries.length) msg += `, countries: ${res.countries.join(', ')}`;
+        if (res.unmapped.length) msg += ` – ignored columns: ${res.unmapped.join(', ')}`;
       }
       showToast(msg, 6000);
     } catch (err) {
-      showToast(`Import fehlgeschlagen: ${err.message}`, 8000);
+      showToast(`Import failed: ${err.message}`, 8000);
     }
   };
 
@@ -130,14 +130,14 @@ async function main() {
     if (!f) return;
     try {
       await importJsonFile(f);
-      showToast(`JSON „${f.name}“ importiert.`);
+      showToast(`JSON “${f.name}” imported.`);
     } catch (err) {
-      showToast(`Import fehlgeschlagen: ${err.message}`, 8000);
+      showToast(`Import failed: ${err.message}`, 8000);
     }
   };
 
   document.getElementById('btn-reset').onclick = () => {
-    if (confirm('Alle lokalen Änderungen verwerfen und auf die versionierten Seed-Daten zurücksetzen?')) {
+    if (confirm('Discard all local changes and reset to the versioned seed data?')) {
       resetToSeed();
     }
   };
@@ -146,8 +146,8 @@ async function main() {
     const log = getData().changeLog || [];
     const items = log.length
       ? log.map((l) => `<li><b>${l.when}</b>${l.who ? ` · ${escapeHtml(l.who)}` : ''} – ${escapeHtml(l.what)}</li>`).join('')
-      : '<li>Noch keine Änderungen.</li>';
-    openDrawerHtml(`<h2>Änderungsprotokoll</h2><ul class="log-list">${items}</ul>`);
+      : '<li>No changes yet.</li>';
+    openDrawerHtml(`<h2>Change Log</h2><ul class="log-list">${items}</ul>`);
   };
 
   document.getElementById('drawer-close').onclick = closeDrawer;

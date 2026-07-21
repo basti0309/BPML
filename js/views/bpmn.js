@@ -77,9 +77,9 @@ export function buildBpmnXml(scopeName, tasks) {
   const shapes = [];
   const edges = [];
 
-  flowNodes.push(`<startEvent id="StartEvent_1" name="Abschluss starten" />`);
+  flowNodes.push(`<startEvent id="StartEvent_1" name="Start close" />`);
   shapes.push(shape('StartEvent_1', startX, startY, 36, 36));
-  flowNodes.push(`<endEvent id="EndEvent_1" name="Fertig" />`);
+  flowNodes.push(`<endEvent id="EndEvent_1" name="Done" />`);
   shapes.push(shape('EndEvent_1', endX, endY, 36, 36));
 
   const roots = tasks.filter((t) => (deps.get(t.id) || []).length === 0);
@@ -146,13 +146,13 @@ function scopeOptions() {
   const opts = [];
   for (const area of data.areas) {
     for (const group of area.groups) {
-      opts.push({ id: `g:${group.id}`, label: `Prozessgruppe: ${group.name}`, tasks: group.processes.flatMap((p) => p.tasks) });
+      opts.push({ id: `g:${group.id}`, label: `Process group: ${group.name}`, tasks: group.processes.flatMap((p) => p.tasks) });
       for (const proc of group.processes) {
-        opts.push({ id: `p:${proc.id}`, label: `– Prozess: ${proc.name}`, tasks: proc.tasks });
+        opts.push({ id: `p:${proc.id}`, label: `– Process: ${proc.name}`, tasks: proc.tasks });
       }
     }
     const all = area.groups.flatMap((g) => g.processes.flatMap((p) => p.tasks));
-    opts.unshift({ id: `a:${area.id}`, label: `Gesamt: ${area.name}`, tasks: all });
+    opts.unshift({ id: `a:${area.id}`, label: `Total: ${area.name}`, tasks: all });
   }
   return opts;
 }
@@ -171,9 +171,9 @@ export function renderBpmn(root) {
       <select id="bpmn-scope">${opts
         .map((o) => `<option value="${o.id}" ${o.id === selected ? 'selected' : ''}>${escapeHtml(o.label)}</option>`)
         .join('')}</select>
-      <button class="btn" id="bpmn-fit">Einpassen</button>
-      <button class="btn" id="bpmn-download">BPMN-XML herunterladen</button>
-      <span class="muted">Diagramm wird automatisch aus Vorgänger-Beziehungen erzeugt · Klick auf einen Task öffnet den Editor</span>
+      <button class="btn" id="bpmn-fit">Fit</button>
+      <button class="btn" id="bpmn-download">Download BPMN XML</button>
+      <span class="muted">Diagram is generated automatically from predecessor relationships · click a task to open the editor</span>
     </div>
     <div id="bpmn-canvas"></div>
   `;
@@ -183,7 +183,7 @@ export function renderBpmn(root) {
     const opt = scopeOptions().find((o) => o.id === panel.querySelector('#bpmn-scope').value);
     if (!opt) return;
     if (!opt.tasks.length) {
-      showToast('Dieser Scope enthält keine Tasks.');
+      showToast('This scope has no tasks.');
       return;
     }
     currentXml = buildBpmnXml(opt.label.replace(/^[^:]+: /, ''), opt.tasks);
@@ -198,7 +198,7 @@ export function renderBpmn(root) {
       });
     } catch (err) {
       console.error(err);
-      showToast(`BPMN-Rendering fehlgeschlagen: ${err.message}`, 6000);
+      showToast(`BPMN rendering failed: ${err.message}`, 6000);
     }
   };
 

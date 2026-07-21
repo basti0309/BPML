@@ -52,21 +52,21 @@ export function renderTable(root) {
   panel.className = 'panel';
   panel.innerHTML = `
     <div class="filterbar">
-      <input type="search" id="flt-q" placeholder="Suche (Task, System, Transaktion…)" value="${escapeHtml(filter.q)}" />
-      <select id="flt-country"><option value="">Alle Länder</option>${countryOpts}</select>
-      <select id="flt-group"><option value="">Alle Prozessgruppen</option>${groupOpts}</select>
-      <select id="flt-status"><option value="">Alle Status</option>${statusOpts}</select>
+      <input type="search" id="flt-q" placeholder="Search (task, system, transaction…)" value="${escapeHtml(filter.q)}" />
+      <select id="flt-country"><option value="">All countries</option>${countryOpts}</select>
+      <select id="flt-group"><option value="">All process groups</option>${groupOpts}</select>
+      <select id="flt-status"><option value="">All statuses</option>${statusOpts}</select>
       <select id="flt-harm">
-        <option value="">Harmonisierung: alle</option>
-        <option value="harm" ${filter.harm === 'harm' ? 'selected' : ''}>nur harmonisierte</option>
-        <option value="var" ${filter.harm === 'var' ? 'selected' : ''}>nur mit Abweichungen</option>
+        <option value="">Harmonization: all</option>
+        <option value="harm" ${filter.harm === 'harm' ? 'selected' : ''}>harmonized only</option>
+        <option value="var" ${filter.harm === 'var' ? 'selected' : ''}>with deviations only</option>
       </select>
-      <span class="chip ok" title="Anteil Land-Zellen ohne Abweichung">Harmonisiert: ${stats.pct}%</span>
-      <button class="btn" id="btn-add-area" style="margin-left:auto">+ Bereich</button>
+      <span class="chip ok" title="Share of country cells without deviation">Harmonized: ${stats.pct}%</span>
+      <button class="btn" id="btn-add-area" style="margin-left:auto">+ Area</button>
     </div>
     <div class="muted" style="margin-bottom:8px">
-      ✎ oder Doppelklick benennt um · ⋮⋮ zieht Zeilen per Drag &amp; Drop in eine andere Gruppe/Position ·
-      + legt Unterelemente an · 🗑 löscht (inkl. Unterbaum)
+      ✎ or double-click renames · ⋮⋮ drags rows into another group/position ·
+      + adds sub-items · 🗑 deletes (incl. subtree)
     </div>
     <div class="tbl-wrap">
       <table class="bpml">
@@ -74,11 +74,11 @@ export function renderTable(root) {
           <tr>
             <th style="width:88px">ID</th>
             <th>Task</th>
-            <th>Verantwortlich</th>
-            <th>System / Transaktion</th>
-            <th style="width:60px">Tag</th>
-            <th>AFC-Typ</th>
-            <th>Länder</th>
+            <th>Responsible</th>
+            <th>System / Transaction</th>
+            <th style="width:60px">WD</th>
+            <th>AFC type</th>
+            <th>Countries</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -144,17 +144,17 @@ function onRowClick(e) {
     else if (action === 'add-task') {
       collapsed.delete(node);
       const t = newTask(node);
-      if (t) { openTaskEditor(t.id); showToast(`${t.id} angelegt – Details ausfüllen.`); }
+      if (t) { openTaskEditor(t.id); showToast(`${t.id} created – fill in the details.`); }
     } else if (action === 'rename') {
       startRename(btn.closest('tr[data-node]'));
     } else if (action === 'delete') {
       const hit = findNode(node);
       if (!hit) return;
       const n = taskIdsWithin(hit.node, hit.kind).length;
-      const label = { area: 'Bereich', group: 'Prozessgruppe', process: 'Prozess', task: 'Task' }[hit.kind];
-      if (confirm(`${label} „${hit.node.name}“ wirklich löschen?${n ? ` Es werden ${n} Task(s) mitgelöscht.` : ''}`)) {
+      const label = { area: 'Area', group: 'Process Group', process: 'Process', task: 'Task' }[hit.kind];
+      if (confirm(`Delete ${label} “${hit.node.name}”?${n ? ` ${n} task(s) will be deleted too.` : ''}`)) {
         deleteNode(node);
-        showToast(`${node} gelöscht.`);
+        showToast(`${node} deleted.`);
       }
     }
     return;
@@ -293,7 +293,7 @@ function onDrop(e) {
     // In den Parent einhängen (ans Ende); Ziel aufklappen, damit man es sieht
     collapsed.delete(row.dataset.node);
     const ok = moveNode(dragged.id, row.dataset.node === 'root' ? 'root' : row.dataset.node);
-    if (ok) showToast(`${dragged.id} verschoben.`);
+    if (ok) showToast(`${dragged.id} moved.`);
     return;
   }
 
@@ -317,7 +317,7 @@ function countryCells(task, meta) {
   return meta.countries
     .map((c) => {
       const cc = (task.countries || {})[c.code];
-      if (!cc || cc.applies === false) return `<span class="chip na" title="nicht relevant">${c.code}</span>`;
+      if (!cc || cc.applies === false) return `<span class="chip na" title="not relevant">${c.code}</span>`;
       if (cc.variant) return `<span class="chip warn" title="${escapeHtml(cc.variant)}${cc.reason ? ' – ' + escapeHtml(cc.reason) : ''}">${c.code}◐</span>`;
       return `<span class="chip ok" title="Standard">${c.code}</span>`;
     })
@@ -325,16 +325,16 @@ function countryCells(task, meta) {
 }
 
 function rowActions(kind, id) {
-  const add = { area: ['add-group', '+ Gruppe'], group: ['add-process', '+ Prozess'], process: ['add-task', '+ Task'] }[kind];
+  const add = { area: ['add-group', '+ Group'], group: ['add-process', '+ Process'], process: ['add-task', '+ Task'] }[kind];
   return `<span class="row-actions">
-    ${add ? `<button class="btn mini" data-action="${add[0]}" data-node="${id}" title="${add[1]} anlegen">${add[1]}</button>` : ''}
-    <button class="btn mini" data-action="rename" data-node="${id}" title="Umbenennen">✎</button>
-    <button class="btn mini danger" data-action="delete" data-node="${id}" title="Löschen (inkl. Unterbaum)">🗑</button>
+    ${add ? `<button class="btn mini" data-action="${add[0]}" data-node="${id}" title="Add ${add[1].slice(2)}">${add[1]}</button>` : ''}
+    <button class="btn mini" data-action="rename" data-node="${id}" title="Rename">✎</button>
+    <button class="btn mini danger" data-action="delete" data-node="${id}" title="Delete (incl. subtree)">🗑</button>
   </span>`;
 }
 
 function handle() {
-  return `<span class="drag-handle" draggable="true" title="Ziehen zum Verschieben">⋮⋮</span>`;
+  return `<span class="drag-handle" draggable="true" title="Drag to move">⋮⋮</span>`;
 }
 
 function renderRows(tbody, data) {
@@ -346,7 +346,7 @@ function renderRows(tbody, data) {
     const areaTasks = taskIdsWithinData(area);
     rows.push(`<tr class="row-area" data-toggle="${area.id}" data-node="${area.id}" data-kind="area">
       <td colspan="8">${handle()}${caret(area.id)}<span class="node-name">${escapeHtml(area.name)}</span>
-        <span class="muted">(${areaTasks} Tasks)</span>${rowActions('area', area.id)}</td>
+        <span class="muted">(${areaTasks} tasks)</span>${rowActions('area', area.id)}</td>
     </tr>`);
     if (collapsed.has(area.id)) continue;
 
@@ -372,14 +372,14 @@ function renderRows(tbody, data) {
             <td data-label="ID">${handle()}${task.id}</td>
             <td data-label="Task">
               <span class="task-name node-name">${escapeHtml(task.name)}</span>
-              ${task.harmonized ? '' : ' <span class="chip warn" title="nicht Teil des Global Template">lokal</span>'}
+              ${task.harmonized ? '' : ' <span class="chip warn" title="not part of the global template">local</span>'}
               ${variants.length ? `<div class="dev-list">◐ ${variants.join(' · ')}</div>` : ''}
             </td>
-            <td data-label="Verantwortlich">${escapeHtml(task.owner || '–')}</td>
+            <td data-label="Responsible">${escapeHtml(task.owner || '–')}</td>
             <td data-label="System">${escapeHtml(task.system || '–')}${task.transaction ? `<div class="muted">${escapeHtml(task.transaction)}</div>` : ''}</td>
-            <td data-label="Tag"><span class="chip day">${fmtDay(task.closingDay)}</span></td>
-            <td data-label="AFC-Typ">${escapeHtml(task.afc?.type || '–')}</td>
-            <td data-label="Länder">${countryCells(task, meta)}</td>
+            <td data-label="WD"><span class="chip day">${fmtDay(task.closingDay)}</span></td>
+            <td data-label="AFC type">${escapeHtml(task.afc?.type || '–')}</td>
+            <td data-label="Countries">${countryCells(task, meta)}</td>
             <td data-label="Status">${statusChip(task.status)}</td>
           </tr>`);
         }

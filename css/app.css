@@ -236,8 +236,8 @@ tr.matrix-group th { background: #e9eef6; text-align: left; font-size: 12px; }
 }
 .cal-task.type-Job { background: #6c4fb3; }
 .cal-task.type-Workflow { background: #0e7d74; }
-.cal-task.type-Meilenstein { background: #1e2733; }
-.cal-task.type-Prüfung { background: #b8860b; }
+.cal-task.type-Milestone { background: #1e2733; }
+.cal-task.type-Check { background: #b8860b; }
 .cal-task.has-variant { outline: 2px dashed var(--warn); outline-offset: -2px; }
 .legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; margin-top: 10px; }
 .legend .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }

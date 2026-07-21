@@ -12,10 +12,10 @@ export function renderAfc(root) {
   const issues = [];
   for (const { task } of allTasks()) {
     const miss = [];
-    if (!task.afc?.type) miss.push('AFC-Typ');
-    if (task.closingDay === null || task.closingDay === undefined) miss.push('Closing Day');
-    if (!(task.raci?.r || task.owner)) miss.push('Verantwortlicher');
-    if (task.afc?.type === 'Job' && !task.afc?.jobName) miss.push('Job-Name');
+    if (!task.afc?.type) miss.push('AFC type');
+    if (task.closingDay === null || task.closingDay === undefined) miss.push('Closing day');
+    if (!(task.raci?.r || task.owner)) miss.push('Responsible');
+    if (task.afc?.type === 'Job' && !task.afc?.jobName) miss.push('Job name');
     if (miss.length) issues.push({ task, miss });
   }
   const cycles = findCycles();
@@ -24,9 +24,9 @@ export function renderAfc(root) {
   kpiPanel.className = 'kpi-row';
   const nTasks = allTasks().length;
   kpiPanel.innerHTML = `
-    <div class="kpi"><div class="val">${nTasks}</div><div class="muted">Tasks gesamt</div></div>
-    <div class="kpi ${issues.length ? 'warn' : 'ok'}"><div class="val">${issues.length}</div><div class="muted">Tasks mit fehlenden AFC-Angaben</div></div>
-    <div class="kpi ${cycles.length ? 'warn' : 'ok'}"><div class="val">${cycles.length}</div><div class="muted">Zyklische Abhängigkeiten</div></div>
+    <div class="kpi"><div class="val">${nTasks}</div><div class="muted">Tasks total</div></div>
+    <div class="kpi ${issues.length ? 'warn' : 'ok'}"><div class="val">${issues.length}</div><div class="muted">Tasks with missing AFC data</div></div>
+    <div class="kpi ${cycles.length ? 'warn' : 'ok'}"><div class="val">${cycles.length}</div><div class="muted">Cyclic dependencies</div></div>
   `;
   root.appendChild(kpiPanel);
 
@@ -35,24 +35,24 @@ export function renderAfc(root) {
   const issueItems = issues
     .map(
       (i) =>
-        `<li><a href="#" data-open="${i.task.id}"><b>${i.task.id}</b> ${escapeHtml(i.task.name)}</a> – fehlt: ${i.miss.join(', ')}</li>`
+        `<li><a href="#" data-open="${i.task.id}"><b>${i.task.id}</b> ${escapeHtml(i.task.name)}</a> – missing: ${i.miss.join(', ')}</li>`
     )
     .join('');
-  const cycleItems = cycles.map((c) => `<li>Zyklus: ${c.join(' → ')}</li>`).join('');
+  const cycleItems = cycles.map((c) => `<li>Cycle: ${c.join(' → ')}</li>`).join('');
   checkPanel.innerHTML = `
-    <b>Design-Checks für den AFC-Import</b>
+    <b>Design checks for the AFC import</b>
     <ul class="check-list">
-      ${issueItems || '<li>✅ Alle Tasks haben Typ, Offset und Verantwortlichen.</li>'}
-      ${cycleItems || '<li>✅ Keine zyklischen Abhängigkeiten.</li>'}
+      ${issueItems || '<li>✅ All tasks have type, offset and responsible.</li>'}
+      ${cycleItems || '<li>✅ No cyclic dependencies.</li>'}
     </ul>
     <div class="drawer-actions">
-      <button class="btn primary" id="afc-csv">⬇ AFC-Task-Liste (CSV)</button>
-      <button class="btn" id="afc-json">⬇ AFC-Task-Liste (JSON)</button>
+      <button class="btn primary" id="afc-csv">⬇ AFC task list (CSV)</button>
+      <button class="btn" id="afc-json">⬇ AFC task list (JSON)</button>
     </div>
     <div class="muted" style="margin-top:6px">
-      Struktur: Task-Listen-Vorlage „${escapeHtml(data.meta.title || 'BPML')}“ → ein Ordner je Prozessgruppe → Tasks mit
-      Typ, Workday-Offset, Verantwortlichem, Dauer, Job-Vorlage und Vorgängern. Länder mit * haben Abweichungen –
-      dort im AFC ggf. eigene Task-Varianten oder separate Task-Listen je Buchungskreis vorsehen.
+      Structure: task-list template “${escapeHtml(data.meta.title || 'BPML')}” → one folder per process group → tasks with
+      type, workday offset, responsible, duration, job template and predecessors. Countries marked * have deviations –
+      consider dedicated task variants or separate task lists per company code in AFC there.
     </div>
   `;
   root.appendChild(checkPanel);
@@ -86,15 +86,15 @@ export function renderAfc(root) {
         })
         .join('');
       folders.push(`<details class="afc-folder" open>
-        <summary>📁 ${escapeHtml(group.name)} <span class="muted">(${tasks.length} Tasks)</span></summary>
+        <summary>📁 ${escapeHtml(group.name)} <span class="muted">(${tasks.length} tasks)</span></summary>
         <table class="afc">
-          <thead><tr><th>ID</th><th>Task</th><th>Typ</th><th>Offset</th><th>Responsible</th><th>Dauer (Min)</th><th>Job</th><th>Vorgänger</th><th>Länder</th><th>Status</th></tr></thead>
+          <thead><tr><th>ID</th><th>Task</th><th>Type</th><th>Offset</th><th>Responsible</th><th>Duration (min)</th><th>Job</th><th>Predecessors</th><th>Countries</th><th>Status</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </details>`);
     }
   }
-  folderPanel.innerHTML = `<b>Task-Listen-Vorlage: ${escapeHtml(data.meta.title || 'BPML')}</b><div style="margin-top:8px">${folders.join('')}</div>`;
+  folderPanel.innerHTML = `<b>Task list template: ${escapeHtml(data.meta.title || 'BPML')}</b><div style="margin-top:8px">${folders.join('')}</div>`;
   root.appendChild(folderPanel);
 
   root.addEventListener('click', (e) => {

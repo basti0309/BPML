@@ -143,7 +143,7 @@ export function updateTask(id, patch, logText) {
   const hit = taskById(id);
   if (!hit) return;
   Object.assign(hit.task, patch);
-  addLog(logText || `Task ${id} „${hit.task.name}“ geändert`);
+  addLog(logText || `Task ${id} “${hit.task.name}” updated`);
   persist();
 }
 
@@ -152,7 +152,7 @@ export function addComment(id, who, text) {
   if (!hit) return;
   if (!hit.task.comments) hit.task.comments = [];
   hit.task.comments.push({ who: who || 'Workshop', when: new Date().toISOString().slice(0, 10), text });
-  addLog(`Kommentar zu ${id} ergänzt`);
+  addLog(`Comment added to ${id}`);
   persist();
 }
 
@@ -181,7 +181,7 @@ export function nextTaskId() {
 
 // ---- Struktur-API (alle Ebenen) ------------------------------------------
 
-const KIND_LABEL = { area: 'Bereich', group: 'Prozessgruppe', process: 'Prozess', task: 'Task' };
+const KIND_LABEL = { area: 'Area', group: 'Process Group', process: 'Process', task: 'Task' };
 
 /** Findet einen Knoten beliebiger Ebene: {kind, node, parentArray, index, parents}. */
 export function findNode(id) {
@@ -210,14 +210,14 @@ export function renameNode(id, name) {
   if (!hit || !name.trim()) return;
   const old = hit.node.name;
   hit.node.name = name.trim();
-  if (old !== hit.node.name) addLog(`${KIND_LABEL[hit.kind]} ${id} umbenannt: „${old}“ → „${hit.node.name}“`);
+  if (old !== hit.node.name) addLog(`${KIND_LABEL[hit.kind]} ${id} renamed: “${old}” → “${hit.node.name}”`);
   persist();
 }
 
 export function addArea(name) {
-  const area = { id: nextId('A'), name: name || 'Neuer Bereich', groups: [] };
+  const area = { id: nextId('A'), name: name || 'New Area', groups: [] };
   data.areas.push(area);
-  addLog(`Bereich ${area.id} „${area.name}“ angelegt`);
+  addLog(`Area ${area.id} “${area.name}” created`);
   persist();
   return area;
 }
@@ -225,9 +225,9 @@ export function addArea(name) {
 export function addGroup(areaId, name) {
   const hit = findNode(areaId);
   if (!hit || hit.kind !== 'area') return null;
-  const group = { id: nextId('G'), name: name || 'Neue Prozessgruppe', processes: [] };
+  const group = { id: nextId('G'), name: name || 'New Process Group', processes: [] };
   hit.node.groups.push(group);
-  addLog(`Prozessgruppe ${group.id} in „${hit.node.name}“ angelegt`);
+  addLog(`Process group ${group.id} created in “${hit.node.name}”`);
   persist();
   return group;
 }
@@ -235,9 +235,9 @@ export function addGroup(areaId, name) {
 export function addProcess(groupId, name) {
   const hit = findNode(groupId);
   if (!hit || hit.kind !== 'group') return null;
-  const proc = { id: nextId('P'), name: name || 'Neuer Prozess', tasks: [] };
+  const proc = { id: nextId('P'), name: name || 'New Process', tasks: [] };
   hit.node.processes.push(proc);
-  addLog(`Prozess ${proc.id} in „${hit.node.name}“ angelegt`);
+  addLog(`Process ${proc.id} created in “${hit.node.name}”`);
   persist();
   return proc;
 }
@@ -259,7 +259,7 @@ export function deleteNode(id) {
   for (const { task } of allTasks()) {
     task.dependsOn = (task.dependsOn || []).filter((d) => !gone.has(d));
   }
-  addLog(`${KIND_LABEL[hit.kind]} ${id} „${hit.node.name}“ gelöscht (${gone.size} Tasks)`);
+  addLog(`${KIND_LABEL[hit.kind]} ${id} “${hit.node.name}” deleted (${gone.size} tasks)`);
   persist();
 }
 
@@ -280,7 +280,7 @@ export function moveNode(id, targetParentId, index) {
   if (src.kind === 'area') {
     if (targetParentId !== 'root') return false;
     targetArray = data.areas;
-    targetLabel = 'oberste Ebene';
+    targetLabel = 'top level';
   } else {
     const target = findNode(targetParentId);
     if (!target || CHILD_KIND[target.kind] !== src.kind) return false;
@@ -297,7 +297,7 @@ export function moveNode(id, targetParentId, index) {
   insertAt = Math.max(0, Math.min(insertAt, targetArray.length));
   targetArray.splice(insertAt, 0, src.node);
 
-  addLog(`${KIND_LABEL[src.kind]} ${id} „${src.node.name}“ nach ${targetLabel} verschoben`);
+  addLog(`${KIND_LABEL[src.kind]} ${id} “${src.node.name}” moved to ${targetLabel}`);
   persist();
   return true;
 }
@@ -312,7 +312,7 @@ export function newTask(procId, template) {
         const task = Object.assign(
           {
             id: nextTaskId(),
-            name: 'Neuer Task',
+            name: 'New Task',
             description: '',
             harmonized: true,
             countries,
@@ -321,16 +321,16 @@ export function newTask(procId, template) {
             system: '',
             transaction: '',
             closingDay: 0,
-            frequency: 'monatlich',
+            frequency: 'Monthly',
             dependsOn: [],
-            afc: { type: 'Manuell', duration: 30, jobName: null },
-            status: data.meta.statusValues[0] || 'Entwurf',
+            afc: { type: 'Manual', duration: 30, jobName: null },
+            status: data.meta.statusValues[0] || 'Draft',
             comments: [],
           },
           template || {}
         );
         proc.tasks.push(task);
-        addLog(`Task ${task.id} in „${proc.name}“ angelegt`);
+        addLog(`Task ${task.id} created in “${proc.name}”`);
         persist();
         return task;
       }
@@ -349,52 +349,52 @@ export function deleteTask(id) {
 export function addCountry(code, name, entities) {
   const c = String(code || '').trim().toUpperCase();
   const nm = String(name || '').trim() || c;
-  if (!c) return { error: 'Bitte einen Ländercode angeben.' };
-  if (!/^[A-Z0-9]{1,6}$/.test(c)) return { error: 'Code: 1–6 Buchstaben/Ziffern.' };
+  if (!c) return { error: 'Please enter a country code.' };
+  if (!/^[A-Z0-9]{1,6}$/.test(c)) return { error: 'Code: 1–6 letters/digits.' };
   if (!data.meta.countries) data.meta.countries = [];
-  if (data.meta.countries.some((x) => x.code.toUpperCase() === c)) return { error: `Land „${c}“ existiert bereits.` };
+  if (data.meta.countries.some((x) => x.code.toUpperCase() === c)) return { error: `Country “${c}” already exists.` };
   data.meta.countries.push({ code: c, name: nm, entities: entities || [] });
   for (const { task } of allTasks()) {
     if (!task.countries) task.countries = {};
     if (!task.countries[c]) task.countries[c] = { applies: true, variant: null };
   }
-  addLog(`Land ${c} „${nm}“ hinzugefügt`);
+  addLog(`Country ${c} “${nm}” added`);
   persist();
   return { ok: true, code: c };
 }
 
-/** Löscht ein Land aus der Meta-Liste und aus allen Tasks. */
+/** Removes a country from the meta list and from every task. */
 export function deleteCountry(code) {
   const list = data.meta.countries || [];
   const idx = list.findIndex((x) => x.code === code);
-  if (idx < 0) return { error: 'Land nicht gefunden.' };
+  if (idx < 0) return { error: 'Country not found.' };
   const nm = list[idx].name;
   list.splice(idx, 1);
   for (const { task } of allTasks()) {
     if (task.countries) delete task.countries[code];
   }
-  addLog(`Land ${code} „${nm}“ gelöscht`);
+  addLog(`Country ${code} “${nm}” deleted`);
   persist();
   return { ok: true };
 }
 
-/** Ändert Code (mit Schlüssel-Migration in allen Tasks), Name oder Buchungskreise. */
+/** Changes code (with key migration across all tasks), name or company codes. */
 export function updateCountry(code, patch) {
   const country = (data.meta.countries || []).find((x) => x.code === code);
-  if (!country) return { error: 'Land nicht gefunden.' };
+  if (!country) return { error: 'Country not found.' };
   if (patch.code !== undefined) {
     const nc = String(patch.code || '').trim().toUpperCase();
-    if (!nc) return { error: 'Code darf nicht leer sein.' };
-    if (!/^[A-Z0-9]{1,6}$/.test(nc)) return { error: 'Code: 1–6 Buchstaben/Ziffern.' };
+    if (!nc) return { error: 'Code must not be empty.' };
+    if (!/^[A-Z0-9]{1,6}$/.test(nc)) return { error: 'Code: 1–6 letters/digits.' };
     if (nc !== code) {
-      if (data.meta.countries.some((x) => x.code.toUpperCase() === nc)) return { error: `Land „${nc}“ existiert bereits.` };
+      if (data.meta.countries.some((x) => x.code.toUpperCase() === nc)) return { error: `Country “${nc}” already exists.` };
       for (const { task } of allTasks()) {
         if (task.countries && task.countries[code] !== undefined) {
           task.countries[nc] = task.countries[code];
           delete task.countries[code];
         }
       }
-      addLog(`Land ${code} → ${nc} (Code geändert)`);
+      addLog(`Country ${code} → ${nc} (code changed)`);
       country.code = nc;
     }
   }

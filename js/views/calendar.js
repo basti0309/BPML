@@ -48,11 +48,11 @@ export function renderCalendar(root) {
               ? Boolean((t.countries || {})[filter.country]?.variant)
               : Object.values(t.countries || {}).some((c) => c.applies !== false && c.variant);
             const varText = filter.country ? (t.countries || {})[filter.country]?.variant : null;
-            const type = (t.afc?.type || 'Manuell').replace(/[^A-Za-zÄÖÜäöüß]/g, '');
-            const deps = (t.dependsOn || []).length ? ` · nach ${(t.dependsOn || []).join(', ')}` : '';
+            const type = (t.afc?.type || 'Manual').replace(/[^A-Za-z]/g, '');
+            const deps = (t.dependsOn || []).length ? ` · after ${(t.dependsOn || []).join(', ')}` : '';
             return `<div class="cal-task type-${type} ${hasVariant ? 'has-variant' : ''}"
               data-task="${t.id}"
-              title="${escapeHtml(t.name)} (${escapeHtml(t.afc?.type || '')}${deps})${varText ? '\nAbweichung: ' + escapeHtml(varText) : ''}">${t.id} ${escapeHtml(t.name)}</div>`;
+              title="${escapeHtml(t.name)} (${escapeHtml(t.afc?.type || '')}${deps})${varText ? '\nDeviation: ' + escapeHtml(varText) : ''}">${t.id} ${escapeHtml(t.name)}</div>`;
           })
           .join('');
         cells.push(`<div class="cal-cell ${d === 0 ? 'zero' : ''}">${items}</div>`);
@@ -66,8 +66,8 @@ export function renderCalendar(root) {
 
   panel.innerHTML = `
     <div class="filterbar">
-      <select id="cal-country"><option value="">Alle Länder (Global Template)</option>${countryOpts}</select>
-      <span class="muted">WT0 = Periodenstichtag · Klick auf einen Task öffnet den Editor · gestrichelter Rand = Länderabweichung</span>
+      <select id="cal-country"><option value="">All countries (global template)</option>${countryOpts}</select>
+      <span class="muted">WD0 = period-end date · click a task to open the editor · dashed border = country deviation</span>
     </div>
     <div class="cal-wrap">
       <div class="cal-grid" style="grid-template-columns: 1fr">
@@ -79,11 +79,11 @@ export function renderCalendar(root) {
       </div>
     </div>
     <div class="legend">
-      <span><span class="swatch" style="background:var(--accent)"></span>Manuell</span>
+      <span><span class="swatch" style="background:var(--accent)"></span>Manual</span>
       <span><span class="swatch" style="background:#6c4fb3"></span>Job</span>
       <span><span class="swatch" style="background:#0e7d74"></span>Workflow</span>
-      <span><span class="swatch" style="background:#b8860b"></span>Prüfung</span>
-      <span><span class="swatch" style="background:#1e2733"></span>Meilenstein</span>
+      <span><span class="swatch" style="background:#b8860b"></span>Check</span>
+      <span><span class="swatch" style="background:#1e2733"></span>Milestone</span>
     </div>
   `;
   root.appendChild(panel);

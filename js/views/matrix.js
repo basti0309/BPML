@@ -16,10 +16,10 @@ export function renderMatrix(root) {
   const kpis = document.createElement('div');
   kpis.className = 'kpi-row';
   kpis.innerHTML = `
-    <div class="kpi ok"><div class="val">${total.pct}%</div><div class="muted">Harmonisierungsgrad (Zellen ohne Abweichung)</div></div>
-    <div class="kpi"><div class="val">${total.std}</div><div class="muted">Standard-Zellen</div></div>
-    <div class="kpi warn"><div class="val">${total.variant}</div><div class="muted">Abweichungen</div></div>
-    <div class="kpi"><div class="val">${total.na}</div><div class="muted">nicht relevant</div></div>
+    <div class="kpi ok"><div class="val">${total.pct}%</div><div class="muted">Harmonization (cells without deviation)</div></div>
+    <div class="kpi"><div class="val">${total.std}</div><div class="muted">Standard cells</div></div>
+    <div class="kpi warn"><div class="val">${total.variant}</div><div class="muted">Deviations</div></div>
+    <div class="kpi"><div class="val">${total.na}</div><div class="muted">not relevant</div></div>
   `;
   root.appendChild(kpis);
 
@@ -38,15 +38,15 @@ export function renderMatrix(root) {
       if (!gTasks.length) continue;
       const gs = harmonizationStats(gTasks);
       rows.push(`<tr class="matrix-group"><th colspan="${codes.length + 1}">${escapeHtml(group.name)}
-        <span class="chip ${gs.pct >= 90 ? 'ok' : gs.pct >= 70 ? 'warn' : 'bad'}" style="float:right">harmonisiert: ${gs.pct}%</span></th></tr>`);
+        <span class="chip ${gs.pct >= 90 ? 'ok' : gs.pct >= 70 ? 'warn' : 'bad'}" style="float:right">harmonized: ${gs.pct}%</span></th></tr>`);
       for (const proc of group.processes) {
         for (const task of proc.tasks) {
           const cells = codes
             .map((code) => {
               const c = (task.countries || {})[code];
-              if (!c || c.applies === false) return `<td class="cell na" data-task="${task.id}" data-code="${code}" title="nicht relevant – klicken zum Ändern">–</td>`;
-              if (c.variant) return `<td class="cell var" data-task="${task.id}" data-code="${code}" title="${escapeHtml(c.variant)}${c.reason ? ' – ' + escapeHtml(c.reason) : ''} (klicken zum Ändern)">◐</td>`;
-              return `<td class="cell std" data-task="${task.id}" data-code="${code}" title="Standard – klicken zum Ändern">✓</td>`;
+              if (!c || c.applies === false) return `<td class="cell na" data-task="${task.id}" data-code="${code}" title="not relevant – click to change">–</td>`;
+              if (c.variant) return `<td class="cell var" data-task="${task.id}" data-code="${code}" title="${escapeHtml(c.variant)}${c.reason ? ' – ' + escapeHtml(c.reason) : ''} (click to change)">◐</td>`;
+              return `<td class="cell std" data-task="${task.id}" data-code="${code}" title="Standard – click to change">✓</td>`;
             })
             .join('');
           rows.push(`<tr>
@@ -60,12 +60,12 @@ export function renderMatrix(root) {
 
   panel.innerHTML = `
     <div class="filterbar">
-      <button class="btn" id="btn-manage-countries">🌐 Länder verwalten</button>
-      <span class="muted">Spalten hinzufügen/umbenennen/löschen</span>
+      <button class="btn" id="btn-manage-countries">🌐 Manage countries</button>
+      <span class="muted">Add / rename / delete columns</span>
     </div>
     <div class="muted" style="margin-bottom:8px">
-      ✓ Standard (harmonisiert) · ◐ Abweichung (Tooltip zeigt Details) · – nicht relevant.
-      Klick auf eine Zelle schaltet den Zustand um (Standard → Abweichung → n/a), Klick auf den Task-Namen öffnet den Editor.
+      ✓ Standard (harmonized) · ◐ deviation (tooltip shows details) · – not relevant.
+      Clicking a cell cycles the state (Standard → deviation → n/a); clicking the task name opens the editor.
     </div>
     <div class="matrix-wrap">
       <table class="matrix">
@@ -95,12 +95,12 @@ export function renderMatrix(root) {
     let next;
     if (cur.applies === false) next = { applies: true, variant: null };
     else if (!cur.variant) {
-      const text = prompt(`Abweichung für ${code} bei ${hit.task.id} „${hit.task.name}“ beschreiben:`, '');
+      const text = prompt(`Describe the deviation for ${code} on ${hit.task.id} “${hit.task.name}”:`, '');
       if (text === null) return;
-      next = { applies: true, variant: text.trim() || 'Abweichung (Details offen)' };
+      next = { applies: true, variant: text.trim() || 'Deviation (details pending)' };
     } else next = { applies: false, variant: null };
     countries[code] = next;
-    updateTask(hit.task.id, { countries }, `Matrix: ${hit.task.id}/${code} → ${next.applies === false ? 'n/a' : next.variant ? 'Abweichung' : 'Standard'}`);
-    showToast(`${hit.task.id} / ${code} aktualisiert.`);
+    updateTask(hit.task.id, { countries }, `Matrix: ${hit.task.id}/${code} → ${next.applies === false ? 'n/a' : next.variant ? 'Deviation' : 'Standard'}`);
+    showToast(`${hit.task.id} / ${code} updated.`);
   });
 }

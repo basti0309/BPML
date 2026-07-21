@@ -1,75 +1,70 @@
-# BPML – Einzelabschlüsse & SAP AFC-Design
+# BPML – Single-Entity Closings & SAP AFC Design
 
-Interaktive, editierbare Business Process Master List (BPML) für das gemeinsame
-Prozessdesign der Einzelabschlüsse – als statische Web-App, hostbar über GitHub Pages.
+Interactive, editable Business Process Master List (BPML) for the collaborative
+process design of single-entity closings – a static web app, hostable via GitHub Pages.
 
-## Ansichten
+## Views
 
-| Tab | Zweck |
+| Tab | Purpose |
 |---|---|
-| **BPML-Tabelle** | Hierarchische Prozessliste (Bereich → Gruppe → Prozess → Task), Filter, Suche, Inline-Detail-Editor, Tasks anlegen/löschen |
-| **Länder-Matrix** | Tasks × Länder: ✓ Standard, ◐ Abweichung, – nicht relevant; Harmonisierungs-KPIs; Klick auf Zelle ändert den Zustand |
-| **Closing-Kalender** | Workday-Timeline (WT−x … WT+y) mit Schwimmbahnen je Prozessgruppe, Länderfilter |
-| **Prozess-Flow (BPMN)** | Automatisch aus den Vorgänger-Beziehungen generierte BPMN-Diagramme (bpmn-js), XML-Download für Signavio/Camunda |
-| **AFC-Design** | Ordner-/Task-Struktur für SAP Advanced Financial Closing, Vollständigkeits-Checks, Export als CSV/JSON |
+| **BPML Table** | Hierarchical process list (Area → Group → Process → Task), filters, search, inline detail editor, create/delete tasks |
+| **Country Matrix** | Tasks × countries: ✓ standard, ◐ deviation, – not relevant; harmonization KPIs; click a cell to change its state |
+| **Closing Calendar** | Workday timeline (WD−x … WD+y) with swimlanes per process group, country filter |
+| **Process Flow (BPMN)** | BPMN diagrams generated automatically from predecessor relationships (bpmn-js), XML download for Signavio/Camunda |
+| **AFC Design** | Folder/task structure for SAP Advanced Financial Closing, completeness checks, export as CSV/JSON |
 
-## Struktur bearbeiten (BPML-Tabelle)
+## Editing the structure (BPML Table)
 
-- **Umbenennen**: ✎-Button oder Doppelklick auf Bereich/Gruppe/Prozess/Task, Enter speichert, Esc bricht ab.
-- **Anlegen**: „+ Bereich“ (oben rechts), „+ Gruppe“ / „+ Prozess“ / „+ Task“ direkt an der jeweiligen Zeile.
-- **Löschen**: 🗑 an der Zeile — löscht inkl. Unterbaum (mit Bestätigung und Anzahl betroffener Tasks); Vorgänger-Verweise auf gelöschte Tasks werden automatisch bereinigt.
-- **Drag & Drop**: Am ⋮⋮-Griff ziehen. Ablegen **auf** einer übergeordneten Zeile hängt ans Ende an (Task → Prozess, Prozess → Gruppe, Gruppe → Bereich); Ablegen **zwischen** gleichartigen Zeilen sortiert davor/dahinter ein. Task-IDs bleiben dabei stabil, Abhängigkeiten und BPMN-Flows bleiben intakt.
-- **Ohne Maus** (Tablet): im Task-Editor über „Prozess (Verschieben nach…)“.
+- **Rename**: ✎ button or double-click on area/group/process/task; Enter saves, Esc cancels.
+- **Add**: “+ Area” (top right), “+ Group” / “+ Process” / “+ Task” directly on the respective row.
+- **Delete**: 🗑 on the row — deletes the whole subtree (with confirmation and the number of affected tasks); predecessor references to deleted tasks are cleaned up automatically.
+- **Drag & drop**: grab the ⋮⋮ handle. Dropping **onto** a parent row appends to the end (task → process, process → group, group → area); dropping **between** rows of the same kind sorts before/after. Task IDs stay stable and dependencies/BPMN flows remain intact.
+- **Without a mouse** (tablet): move a task via “Process (move to…)” in the task editor.
 
-## Arbeiten mit der App
+## Working with the app
 
-Die App ist das primäre Arbeitswerkzeug; die Exports dienen zum Verschicken **und** um
-Stände wieder einzuladen.
+The app is the primary working tool; exports are for sending around **and** for loading states back in.
 
-- **↶ / ↷ Rückgängig / Wiederherstellen** jeder Änderung (auch per `Strg+Z` / `Strg+Umschalt+Z`;
-  in Eingabefeldern greift die native Text-Rückgängig-Funktion).
-- **👤 Bearbeiter**: Namen setzen – er erscheint im Änderungsprotokoll und als Vorbelegung
-  bei Kommentaren.
-- **🌐 Länder verwalten**: Länder hinzufügen, umbenennen, Code ändern (wird in allen Tasks
-  migriert) oder löschen (auch über „Länder verwalten“ in der Länder-Matrix). Ein neues Land
-  wird bei allen Tasks zunächst als „Standard“ angelegt.
-- Alle Änderungen werden sofort im Browser gespeichert (localStorage).
+- **↶ / ↷ Undo / Redo** any change (also via `Ctrl+Z` / `Ctrl+Shift+Z`; inside input fields the native text-undo applies).
+- **👤 Editor**: set your name — it appears in the change log and pre-fills on comments.
+- **🌐 Manage countries**: add, rename, change a code (migrated across all tasks) or delete countries (also via “Manage countries” in the Country Matrix). A new country is initially added as “Standard” for every task.
+- All changes are saved to the browser immediately (localStorage).
 
-## Exporte & Wiedereinladen
+## Exports & reloading
 
-- **⬇ Excel**: schön formatiertes Workbook `bpml-export-<Datum>.xlsx` mit sechs Blättern
-  (Deckblatt mit KPIs & Checks, gruppierte BPML, Länder-Matrix, Länderspezifika,
-  Abschlusskalender, AFC-Task-Liste) – inkl. Freeze Panes, Autofilter, Ampel-Farben und
-  Kommentaren. Aufbau siehe [`docs/BPML-Konzept.xlsx`](docs/BPML-Konzept.xlsx). **Der Export
-  enthält den vollständigen Stand eingebettet** und kann über „⬆ Excel" wieder geladen werden.
-- **⬇ JSON**: vollständigen Snapshot exportieren (z.B. für die Versionierung im Repo).
-- **⬆ Excel**: einen von dieser App erzeugten Export **verlustfrei wieder laden** – oder eine
-  fremde BPML-Excel importieren (Spalten-Mapping siehe [`data/schema.md`](data/schema.md)).
-- **⬆ JSON**: einen exportierten Snapshot wieder laden.
-- **↺**: auf den versionierten Seed (`data/bpml.json`) zurücksetzen.
+- **⬇ Excel**: nicely formatted workbook `bpml-export-<date>.xlsx` with six sheets
+  (Cover with KPIs & checks, grouped BPML, Country Matrix, Country Specifics, Closing
+  Calendar, AFC Task List) – incl. freeze panes, auto-filters, traffic-light colors and
+  comments. Layout described in [`docs/BPML-Konzept.xlsx`](docs/BPML-Konzept.xlsx). **The
+  export embeds the full state** and can be loaded back in via “⬆ Excel”.
+- **⬇ JSON**: export the full snapshot (e.g. for versioning in the repo).
+- **⬆ Excel**: **losslessly reload an export produced by this app** – or import a foreign
+  BPML Excel (column mapping, see [`data/schema.md`](data/schema.md)).
+- **⬆ JSON**: load an exported snapshot again.
+- **↺**: reset to the versioned seed (`data/bpml.json`).
 
-Der versionierte Stand liegt in [`data/bpml.json`](data/bpml.json); das Datenmodell
-ist in [`data/schema.md`](data/schema.md) dokumentiert.
+The versioned state lives in [`data/bpml.json`](data/bpml.json); the data model is
+documented in [`data/schema.md`](data/schema.md).
 
-## Lokal starten
+## Run locally
 
 ```bash
 python3 -m http.server 8000
 # → http://localhost:8000
 ```
 
-(Ein Server ist nötig, weil die App `data/bpml.json` per fetch lädt.)
+(A server is required because the app loads `data/bpml.json` via fetch.)
 
-## Hosting über GitHub Pages
+## Hosting via GitHub Pages
 
-1. Branch nach `main` mergen.
-2. Repo-Einstellungen → **Pages** → Source: „Deploy from a branch“, Branch `main`, Ordner `/ (root)`.
-3. Die App ist dann unter `https://<user>.github.io/BPML/` erreichbar.
+1. Merge the branch into the deploy branch (the repo's default branch).
+2. Repo settings → **Pages** → Source: “Deploy from a branch”.
+3. The app is then reachable at `https://<user>.github.io/BPML/`.
 
-## Technik
+## Tech
 
-- Statisches HTML/CSS/JS ohne Build-Schritt (ES-Module).
-- Vendored Bibliotheken (kein CDN, funktioniert auch in restriktiven Netzen) unter `js/vendor/`:
-  [bpmn-js](https://github.com/bpmn-io/bpmn-js) (BPMN-Viewer),
-  [SheetJS](https://sheetjs.com/) (Excel-Import) und
-  [ExcelJS](https://github.com/exceljs/exceljs) (formatierter Excel-Export).
+- Static HTML/CSS/JS without a build step (ES modules).
+- Vendored libraries (no CDN, works in restrictive networks too) under `js/vendor/`:
+  [bpmn-js](https://github.com/bpmn-io/bpmn-js) (BPMN viewer),
+  [SheetJS](https://sheetjs.com/) (Excel import) and
+  [ExcelJS](https://github.com/exceljs/exceljs) (formatted Excel export).
