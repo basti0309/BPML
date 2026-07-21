@@ -139,6 +139,29 @@ export function taskById(id) {
   return allTasks().find((t) => t.task.id === id) || null;
 }
 
+/**
+ * Positional hierarchy numbers (WBS-style), e.g. "1.2.1.3". Derived purely from each
+ * node's position in the tree, so drag & drop and reordering re-assign them
+ * automatically. The stable IDs (A/G/P/T…) are unaffected. Returns a Map(id → number).
+ */
+export function outlineNumbers(d = data) {
+  const map = new Map();
+  (d.areas || []).forEach((area, ai) => {
+    const an = `${ai + 1}`;
+    map.set(area.id, an);
+    (area.groups || []).forEach((group, gi) => {
+      const gn = `${an}.${gi + 1}`;
+      map.set(group.id, gn);
+      (group.processes || []).forEach((proc, pi) => {
+        const pn = `${gn}.${pi + 1}`;
+        map.set(proc.id, pn);
+        (proc.tasks || []).forEach((task, ti) => map.set(task.id, `${pn}.${ti + 1}`));
+      });
+    });
+  });
+  return map;
+}
+
 export function updateTask(id, patch, logText) {
   const hit = taskById(id);
   if (!hit) return;

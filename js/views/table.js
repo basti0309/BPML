@@ -2,7 +2,7 @@
 // (Umbenennen, Anlegen, Löschen) und Umhängen/Umsortieren per Drag & Drop.
 
 import {
-  getData, allTasks, newTask, harmonizationStats,
+  getData, allTasks, newTask, harmonizationStats, outlineNumbers,
   findNode, renameNode, addArea, addGroup, addProcess, deleteNode, moveNode, taskIdsWithin, updateTask,
 } from '../state.js';
 import { openTaskEditor, closeDrawer, escapeHtml, fmtDay, statusChip, showToast } from '../editor.js';
@@ -72,7 +72,7 @@ export function renderTable(root) {
       <table class="bpml">
         <thead>
           <tr>
-            <th style="width:88px">ID</th>
+            <th style="width:104px">No. · ID</th>
             <th>Task</th>
             <th>Responsible</th>
             <th>System / Transaction</th>
@@ -340,12 +340,14 @@ function handle() {
 function renderRows(tbody, data) {
   const meta = data.meta;
   const rows = [];
+  const no = outlineNumbers(data);
+  const numTag = (id) => `<span class="outline-no">${no.get(id) || ''}</span>`;
   const caret = (id) => `<span class="caret">${collapsed.has(id) ? '▸' : '▾'}</span>`;
 
   for (const area of data.areas) {
     const areaTasks = taskIdsWithinData(area);
     rows.push(`<tr class="row-area" data-toggle="${area.id}" data-node="${area.id}" data-kind="area">
-      <td colspan="8">${handle()}${caret(area.id)}<span class="node-name">${escapeHtml(area.name)}</span>
+      <td colspan="8">${handle()}${caret(area.id)}${numTag(area.id)}<span class="node-name">${escapeHtml(area.name)}</span>
         <span class="muted">(${areaTasks} tasks)</span>${rowActions('area', area.id)}</td>
     </tr>`);
     if (collapsed.has(area.id)) continue;
@@ -353,13 +355,13 @@ function renderRows(tbody, data) {
     for (const group of area.groups) {
       if (filter.group && group.name !== filter.group) continue;
       rows.push(`<tr class="row-group" data-toggle="${group.id}" data-node="${group.id}" data-kind="group">
-        <td colspan="8" style="padding-left:22px">${handle()}${caret(group.id)}<span class="node-name">${escapeHtml(group.name)}</span>${rowActions('group', group.id)}</td>
+        <td colspan="8" style="padding-left:22px">${handle()}${caret(group.id)}${numTag(group.id)}<span class="node-name">${escapeHtml(group.name)}</span>${rowActions('group', group.id)}</td>
       </tr>`);
       if (collapsed.has(group.id)) continue;
 
       for (const proc of group.processes) {
         rows.push(`<tr class="row-proc" data-toggle="${proc.id}" data-node="${proc.id}" data-kind="process">
-          <td colspan="8" style="padding-left:40px">${handle()}${caret(proc.id)}<span class="node-name">${escapeHtml(proc.name)}</span>${rowActions('process', proc.id)}</td>
+          <td colspan="8" style="padding-left:40px">${handle()}${caret(proc.id)}${numTag(proc.id)}<span class="node-name">${escapeHtml(proc.name)}</span>${rowActions('process', proc.id)}</td>
         </tr>`);
         if (collapsed.has(proc.id)) continue;
 
@@ -369,7 +371,7 @@ function renderRows(tbody, data) {
             .filter(([, c]) => c.applies !== false && c.variant)
             .map(([code, c]) => `${code}: ${escapeHtml(c.variant)}`);
           rows.push(`<tr class="row-task" data-task="${task.id}" data-node="${task.id}" data-kind="task">
-            <td data-label="ID">${handle()}${task.id}</td>
+            <td data-label="No. · ID">${handle()}<span class="outline-no">${no.get(task.id) || ''}</span><span class="id-ref">${task.id}</span></td>
             <td data-label="Task">
               <span class="task-name node-name">${escapeHtml(task.name)}</span>
               ${task.harmonized ? '' : ' <span class="chip warn" title="not part of the global template">local</span>'}

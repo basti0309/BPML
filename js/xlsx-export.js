@@ -235,15 +235,35 @@ function sectionLabel(ws, ref, text) {
   c.font = { name: FONT, size: 9, bold: true, color: { argb: C.accent } };
 }
 
-// ---- 2) BPML (Hierarchie mit Gruppierung) ----------------------------------
+// Positional hierarchy numbers (WBS-style), e.g. "1.2.1.3" – derived from tree position.
+function computeOutline(data) {
+  const map = {};
+  (data.areas || []).forEach((area, ai) => {
+    const an = `${ai + 1}`;
+    map[area.id] = an;
+    (area.groups || []).forEach((group, gi) => {
+      const gn = `${an}.${gi + 1}`;
+      map[group.id] = gn;
+      (group.processes || []).forEach((proc, pi) => {
+        const pn = `${gn}.${pi + 1}`;
+        map[proc.id] = pn;
+        (proc.tasks || []).forEach((task, ti) => { map[task.id] = `${pn}.${ti + 1}`; });
+      });
+    });
+  });
+  return map;
+}
+
+// ---- 2) BPML (hierarchy with grouping) -------------------------------------
 function buildBpml(wb, data) {
   const ws = wb.addWorksheet('BPML', {
     views: [{ state: 'frozen', ySplit: 1, showGridLines: false }],
     properties: { outlineLevelRow: 2, summaryBelow: false },
     pageSetup: { orientation: 'landscape', fitToWidth: 1, fitToHeight: 0 },
   });
+  const outline = computeOutline(data);
   const cols = [
-    ['ID', 9], ['Task', 40], ['Description', 42], ['R', 18], ['A', 18], ['System', 14],
+    ['No.', 11], ['ID', 9], ['Task', 38], ['Description', 40], ['R', 18], ['A', 18], ['System', 14],
     ['Transaction', 16], ['AFC type', 12], ['WD', 8], ['Duration', 8], ['Job', 16],
     ['Frequency', 13], ['Predecessors', 14], ['Harmon.', 12], ['Status', 15],
   ];
@@ -254,13 +274,13 @@ function buildBpml(wb, data) {
 
   for (const area of data.areas || []) {
     const nTasks = (area.groups || []).reduce((n, g) => n + g.processes.reduce((m, p) => m + p.tasks.length, 0), 0);
-    const aRow = ws.addRow([`▾  ${area.name}   (${nTasks} tasks)`]);
+    const aRow = ws.addRow([`▾  ${outline[area.id]}  ${area.name}   (${nTasks} tasks)`]);
     aRow.outlineLevel = 0;
     ws.mergeCells(aRow.number, 1, aRow.number, LAST);
     styleBand(aRow, C.navy, C.white, 12);
 
     for (const group of area.groups || []) {
-      const gRow = ws.addRow([`▾  ${group.name}`]);
+      const gRow = ws.addRow([`▾  ${outline[group.id]}  ${group.name}`]);
       gRow.outlineLevel = 1;
       ws.mergeCells(gRow.number, 1, gRow.number, LAST);
       styleBand(gRow, C.accSoft, C.navy, 11);
@@ -272,23 +292,24 @@ function buildBpml(wb, data) {
             .map(([code]) => code);
           const harm = devs.length ? `◐ ${devs.join(', ')}` : '✓';
           const row = ws.addRow([
-            task.id, task.name, task.description || '', task.raci?.r || task.owner || '', task.raci?.a || '',
+            outline[task.id], task.id, task.name, task.description || '', task.raci?.r || task.owner || '', task.raci?.a || '',
             task.system || '', task.transaction || '', task.afc?.type || '', fmtDay(task.closingDay ?? 0),
             task.afc?.duration ?? '', task.afc?.jobName || '', task.frequency || '',
             (task.dependsOn || []).join(', '), harm, task.status || '',
           ]);
           row.outlineLevel = 2;
           styleTaskRow(row, LAST);
-          row.getCell(1).font = { name: FONT, size: 10, bold: true, color: { argb: C.accent } };
-          row.getCell(9).alignment = { horizontal: 'center' };
-          row.getCell(9).font = { name: 'Consolas', size: 10, color: { argb: C.ink } };
-          // Harmonisierung
-          const hc = row.getCell(14);
+          row.getCell(1).font = { name: 'Consolas', size: 10, bold: true, color: { argb: C.accent } };
+          row.getCell(2).font = { name: FONT, size: 10, bold: true, color: { argb: C.ink } };
+          row.getCell(10).alignment = { horizontal: 'center' };
+          row.getCell(10).font = { name: 'Consolas', size: 10, color: { argb: C.ink } };
+          // Harmonization
+          const hc = row.getCell(15);
           hc.alignment = { horizontal: 'center' };
           hc.font = { name: FONT, size: 10, bold: true, color: { argb: devs.length ? C.warn : C.ok } };
           hc.fill = fill(devs.length ? C.warnSoft : C.okSoft);
           // Status
-          const sc = row.getCell(15);
+          const sc = row.getCell(16);
           const sf = statusFill(task.status);
           sc.alignment = { horizontal: 'center' };
           sc.font = { name: FONT, size: 9.5, bold: true, color: { argb: sf.fg } };

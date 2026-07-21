@@ -38,6 +38,10 @@ The array order (`areas`, `groups`, `processes`, `tasks`) is also the display an
 order. Drag & drop in the table changes exactly this order or re-parents nodes into a
 different parent array; IDs stay stable and `dependsOn` references remain valid.
 
+A **positional process number** (WBS-style, e.g. `1.2.1.3`) is derived from this order at
+display/export time (`outlineNumbers()` in `state.js`). It is **not stored** and
+re-numbers automatically on drag & drop / reorder; the stable IDs are unaffected.
+
 ## Meta
 
 - `meta.countries`: countries with company codes (`entities`) – add, rename and delete them
