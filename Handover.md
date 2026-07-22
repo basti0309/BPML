@@ -325,6 +325,27 @@ Gemeinsamer Task-Editor (Drawer), aus jeder Ansicht per Klick erreichbar.
 - **👤**-Button setzt einen Bearbeiter-Namen (localStorage `bpml-editor`). `addLog()` schreibt
   ihn als `who` in jeden Protokolleintrag; im Kommentarfeld ist er vorbelegt.
 
+### Backups & Wiederherstellung (`state.js`, `app.js`) — Sicherheitsnetz „Phase 1"
+
+- **Rollierende Wiederherstellungspunkte** in einem **separaten** localStorage-Schlüssel
+  `bpml-backups-v1` (max. 20). Dadurch überleben sie **↺ Reset** (das nur `bpml-data-v1`
+  löscht).
+- Ein Backup entsteht automatisch **vor jedem Reset/Import** (`backupNow` in `setData` /
+  `resetToSeed`), **periodisch** ~90 s nach der letzten Änderung (`scheduleAutoBackup` →
+  `backupIfChanged`, angestoßen in `persist()`) und beim **Schließen des Tabs**
+  (`beforeunload` → `backupIfChanged`). Zusätzlich manuell über den 🗄-Button.
+- **🗄-Panel** (`renderBackups` in `app.js`): Liste mit Zeitstempel/Anlass/Task-Anzahl,
+  je Eintrag **Restore / Download / Löschen**, plus „Create backup now" und „Download
+  current (JSON)". `restoreBackup` sichert vorher den aktuellen Stand („before restore"),
+  ist also selbst umkehrbar. Bei `QuotaExceededError` wird der älteste Snapshot verworfen.
+
+### Schema-Migration (`state.js`)
+
+- `meta.schemaVersion` + `migrate(d)` laufen bei **jedem Laden/Import** (`initState`,
+  `setData`, `restoreBackup`). `migrate` normalisiert die Struktur defensiv (fehlende
+  Felder/Arrays) und hebt künftig ältere Stände über eine versionierte Migrationskette auf
+  die aktuelle Version — so brechen Tool-Weiterentwicklungen den gespeicherten Stand nicht.
+
 > Wichtig für die Übergabe: Der Arbeitsstand lebt **pro Browser/Gerät**. Es gibt keine
 > serverseitige Speicherung. Ergebnisse aus Workshops müssen über **Export** gesichert und
 > ins Repo committet werden, sonst gehen sie beim Browser-/Gerätewechsel verloren.
@@ -434,9 +455,11 @@ Wo man typische Anpassungen vornimmt:
 
 ## 10. Offene Punkte / Bekannte Einschränkungen
 
-> Umgesetzt in diesem Stand: formatierter Excel-Export, **verlustfreier Round-Trip**
+> Umgesetzt bisher: formatierter Excel-Export, **verlustfreier Round-Trip**
 > (Export → Mail → wieder einladen), **Undo/Redo**, **Bearbeiter/Urheber** im Protokoll,
-> **Abweichungsgrund** im Editor (+ Fix des nicht gespeicherten Länder-Scopes).
+> **Abweichungsgrund** im Editor (+ Fix des nicht gespeicherten Länder-Scopes), englische
+> Standardsprache, **Prozessnummer** (interne IDs verborgen), sowie **Backups &
+> Wiederherstellung + Schema-Migration** (Sicherheitsnetz gegen Datenverlust).
 
 Noch offen:
 

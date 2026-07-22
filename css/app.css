@@ -319,6 +319,12 @@ fieldset.country-block legend { font-size: 12px; color: var(--muted); padding: 0
 .cm-add { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .cm-add #cm-new-code { width: 70px; text-transform: uppercase; }
 .cm-add #cm-new-name { flex: 1; min-width: 120px; }
+
+/* ---------- Backups ---------- */
+.backup-list { list-style: none; padding: 0; margin: 12px 0 0; }
+.backup-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid var(--line); padding: 7px 0; font-size: 12.5px; }
+.backup-list .bk-meta { min-width: 0; }
+.backup-list .bk-actions { display: flex; gap: 4px; flex: none; }
 .drawer-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
 .comments { margin-top: 14px; }
 .comments .comment { border-top: 1px solid var(--line); padding: 6px 0; font-size: 12px; }

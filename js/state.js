@@ -3,23 +3,31 @@
 
 const LS_KEY = 'bpml-data-v1';
 const ED_KEY = 'bpml-editor';
+const BACKUP_KEY = 'bpml-backups-v1';
 const HISTORY_MAX = 60;
+const BACKUP_MAX = 20;            // rolling restore points kept in this browser
+const BACKUP_DEBOUNCE_MS = 90000; // auto-backup ~90s after the last change
+const SCHEMA_VERSION = 1;
 
 let data = null;
 const listeners = new Set();
 
-// Undo/Redo: Schnappschüsse des gesamten Datenstands. `committed` ist der
-// zuletzt gespeicherte Stand; jede Mutation legt ihn auf den Undo-Stack.
+// Undo/Redo: snapshots of the whole dataset. `committed` is the last saved state;
+// each mutation pushes it onto the undo stack.
 let committed = null;
 const undoStack = [];
 const redoStack = [];
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
+// Auto-backup bookkeeping
+let backupTimer = null;
+let lastBackupHash = null;
+
 export function getData() {
   return data;
 }
 
-// ---- Bearbeiter (für Protokoll & Kommentare) -----------------------------
+// ---- Editor name (for change log & comments) -----------------------------
 export function getEditor() {
   return localStorage.getItem(ED_KEY) || '';
 }
@@ -29,31 +37,65 @@ export function setEditor(name) {
   else localStorage.removeItem(ED_KEY);
 }
 
+// ---- Schema migration ----------------------------------------------------
+// Runs on every load/import so an older state is upgraded to the current shape
+// instead of breaking when the tool's data model evolves. Add future structural
+// migrations keyed by version where indicated.
+function migrate(d) {
+  if (!d || typeof d !== 'object') return d;
+  d.meta = d.meta || {};
+  d.meta.countries = d.meta.countries || [];
+  d.meta.statusValues = d.meta.statusValues && d.meta.statusValues.length ? d.meta.statusValues : ['Draft', 'In Review', 'Final'];
+  d.meta.afcTaskTypes = d.meta.afcTaskTypes && d.meta.afcTaskTypes.length ? d.meta.afcTaskTypes : ['Manual', 'Job', 'Workflow', 'Check', 'Milestone'];
+  d.areas = d.areas || [];
+  d.changeLog = d.changeLog || [];
+  for (const area of d.areas)
+    for (const g of area.groups || [])
+      for (const p of g.processes || [])
+        for (const t of p.tasks || []) {
+          t.countries = t.countries || {};
+          t.afc = t.afc || { type: 'Manual', duration: null, jobName: null };
+          t.raci = t.raci || { r: '', a: '' };
+          t.dependsOn = t.dependsOn || [];
+          t.comments = t.comments || [];
+        }
+  // Future structural migrations (example):
+  //   const v = d.meta.schemaVersion || 0;
+  //   if (v < 2) { /* transform */ }
+  d.meta.schemaVersion = SCHEMA_VERSION;
+  return d;
+}
+
 export async function initState() {
   const stored = localStorage.getItem(LS_KEY);
   if (stored) {
     try {
-      data = JSON.parse(stored);
+      data = migrate(JSON.parse(stored));
       committed = clone(data);
+      lastBackupHash = JSON.stringify(data);
+      writeLS();
       return data;
     } catch (e) {
-      console.warn('localStorage-Daten unlesbar, lade Seed', e);
+      console.warn('localStorage data unreadable, loading seed', e);
     }
   }
   const res = await fetch('data/bpml.json');
-  data = await res.json();
+  data = migrate(await res.json());
   committed = clone(data);
+  lastBackupHash = JSON.stringify(data);
   writeLS();
   return data;
 }
 
 export function setData(next, logText) {
-  data = next;
+  backupNow('before import/load'); // keep the current state as a restore point
+  data = migrate(next);
   if (logText) addLog(logText);
   persist();
 }
 
 export function resetToSeed() {
+  backupNow('before reset'); // survives the reset (separate storage key)
   localStorage.removeItem(LS_KEY);
   location.reload();
 }
@@ -62,7 +104,7 @@ function writeLS() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(data));
   } catch (e) {
-    console.error('localStorage voll?', e);
+    console.error('localStorage full?', e);
   }
 }
 
@@ -74,8 +116,73 @@ function persist(notifyViews = true) {
   }
   committed = clone(data);
   writeLS();
-  if (notifyViews) notify();
+  if (notifyViews) {
+    scheduleAutoBackup();
+    notify();
+  }
 }
+
+// ---- Backups (restore points) --------------------------------------------
+function countTasks(d) {
+  let n = 0;
+  for (const a of d.areas || []) for (const g of a.groups || []) for (const p of g.processes || []) n += (p.tasks || []).length;
+  return n;
+}
+function readBackups() {
+  try { return JSON.parse(localStorage.getItem(BACKUP_KEY)) || []; } catch (e) { return []; }
+}
+function writeBackups(list) {
+  let arr = list.slice(-BACKUP_MAX);
+  while (arr.length) {
+    try { localStorage.setItem(BACKUP_KEY, JSON.stringify(arr)); return; }
+    catch (e) { arr = arr.slice(1); } // drop oldest on quota error and retry
+  }
+  try { localStorage.setItem(BACKUP_KEY, '[]'); } catch (e) { /* ignore */ }
+}
+export function backupNow(label) {
+  if (!data) return null;
+  const list = readBackups();
+  const snap = {
+    when: new Date().toISOString().slice(0, 16).replace('T', ' '),
+    label: label || 'manual',
+    tasks: countTasks(data),
+    data: clone(data),
+  };
+  list.push(snap);
+  writeBackups(list);
+  lastBackupHash = JSON.stringify(data);
+  return snap;
+}
+export function backupIfChanged(label) {
+  if (!data) return;
+  if (JSON.stringify(data) !== lastBackupHash) backupNow(label);
+}
+function scheduleAutoBackup() {
+  if (backupTimer) clearTimeout(backupTimer);
+  backupTimer = setTimeout(() => { backupTimer = null; backupIfChanged('auto'); }, BACKUP_DEBOUNCE_MS);
+}
+export function listBackups() {
+  return readBackups().map((b, i) => ({ i, when: b.when, label: b.label, tasks: b.tasks }));
+}
+export function getBackup(index) {
+  return readBackups()[index] || null;
+}
+export function restoreBackup(index) {
+  const b = readBackups()[index];
+  if (!b) return false;
+  backupNow('before restore'); // make the restore itself reversible
+  data = migrate(clone(b.data));
+  addLog(`Restored backup from ${b.when} (${b.label})`);
+  persist();
+  return true;
+}
+export function deleteBackup(index) {
+  const list = readBackups();
+  if (index < 0 || index >= list.length) return;
+  list.splice(index, 1);
+  writeBackups(list);
+}
+export const schemaVersion = () => SCHEMA_VERSION;
 
 // ---- Undo / Redo ---------------------------------------------------------
 export const canUndo = () => undoStack.length > 0;

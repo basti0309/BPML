@@ -1,4 +1,7 @@
-import { initState, getData, onChange, resetToSeed, undo, redo, canUndo, canRedo, getEditor, setEditor } from './state.js';
+import {
+  initState, getData, onChange, resetToSeed, undo, redo, canUndo, canRedo, getEditor, setEditor,
+  backupNow, backupIfChanged, listBackups, getBackup, restoreBackup, deleteBackup, schemaVersion,
+} from './state.js';
 import { exportJson, importJsonFile, importExcelFile } from './io.js';
 import { exportFormattedExcel } from './xlsx-export.js';
 import { renderTable } from './views/table.js';
@@ -137,10 +140,12 @@ async function main() {
   };
 
   document.getElementById('btn-reset').onclick = () => {
-    if (confirm('Discard all local changes and reset to the versioned seed data?')) {
+    if (confirm('Discard all local changes and reset to the versioned seed data?\n\nA backup is created first — you can restore it from 🗄 Backups.')) {
       resetToSeed();
     }
   };
+
+  document.getElementById('btn-backups').onclick = () => renderBackups();
 
   document.getElementById('btn-log').onclick = () => {
     const log = getData().changeLog || [];
@@ -150,12 +155,79 @@ async function main() {
     openDrawerHtml(`<h2>Change Log</h2><ul class="log-list">${items}</ul>`);
   };
 
+  // Capture the final state when the tab is closed (only if it changed).
+  window.addEventListener('beforeunload', () => backupIfChanged('session end'));
+
   document.getElementById('drawer-close').onclick = closeDrawer;
   document.getElementById('drawer').addEventListener('click', (e) => {
     if (e.target.id === 'drawer') closeDrawer();
   });
 
   render();
+}
+
+function renderBackups() {
+  const backups = listBackups(); // oldest first: [{i, when, label, tasks}]
+  const rows = backups.length
+    ? backups
+        .slice()
+        .reverse()
+        .map(
+          (b) => `<li>
+            <div class="bk-meta"><b>${b.when}</b> · ${escapeHtml(b.label)} · ${b.tasks} tasks</div>
+            <div class="bk-actions">
+              <button class="btn mini" data-restore="${b.i}">Restore</button>
+              <button class="btn mini" data-download="${b.i}">⬇</button>
+              <button class="btn mini danger" data-delete="${b.i}" title="Delete backup">🗑</button>
+            </div>
+          </li>`
+        )
+        .join('')
+    : '<li class="muted">No backups yet.</li>';
+
+  openDrawerHtml(`
+    <h2>Backups &amp; restore</h2>
+    <div class="muted" style="margin-bottom:10px">
+      Automatic restore points (last 20) stored in this browser. They survive “Reset”, and one is
+      made automatically before every reset/import and periodically while you work. For off-device
+      safety, still export ⬇ JSON to your own storage now and then.
+    </div>
+    <div class="drawer-actions">
+      <button class="btn primary" id="bk-now">Create backup now</button>
+      <button class="btn" id="bk-dl-current">Download current (JSON)</button>
+    </div>
+    <ul class="log-list backup-list">${rows}</ul>
+    <div class="muted" style="margin-top:8px">Data schema version: ${schemaVersion()}</div>
+  `);
+
+  document.getElementById('bk-now').onclick = () => { backupNow('manual'); renderBackups(); showToast('Backup created.'); };
+  document.getElementById('bk-dl-current').onclick = () => exportJson();
+
+  document.querySelector('.backup-list').addEventListener('click', (e) => {
+    const r = e.target.closest('[data-restore]');
+    const d = e.target.closest('[data-download]');
+    const x = e.target.closest('[data-delete]');
+    if (r) {
+      if (confirm('Restore this backup? Your current state is backed up first.')) {
+        if (restoreBackup(Number(r.dataset.restore))) { renderBackups(); showToast('Backup restored.'); }
+      }
+    } else if (d) {
+      downloadBackup(Number(d.dataset.download));
+    } else if (x) {
+      if (confirm('Delete this backup?')) { deleteBackup(Number(x.dataset.delete)); renderBackups(); }
+    }
+  });
+}
+
+function downloadBackup(index) {
+  const b = getBackup(index);
+  if (!b) return;
+  const blob = new Blob([JSON.stringify(b.data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `bpml-backup-${b.when.replace(/[: ]/g, '-')}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
 
 function escapeHtml(s) {

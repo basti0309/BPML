@@ -1,6 +1,7 @@
 {
   "meta": {
     "version": 1,
+    "schemaVersion": 1,
     "client": "Example Group (seed data – replaced by Excel import)",
     "title": "BPML Single-Entity Closings",
     "countries": [

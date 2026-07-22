@@ -30,6 +30,8 @@ The app is the primary working tool; exports are for sending around **and** for 
 - **👤 Editor**: set your name — it appears in the change log and pre-fills on comments.
 - **🌐 Manage countries**: add, rename, change a code (migrated across all tasks) or delete countries (also via “Manage countries” in the Country Matrix). A new country is initially added as “Standard” for every task.
 - All changes are saved to the browser immediately (localStorage).
+- **🗄 Backups & restore**: automatic restore points (last 20) kept in this browser. One is made **before every reset/import** and **periodically while you work**; the panel lets you **restore**, download or delete them. They survive **↺ Reset**. For off-device safety, still export **⬇ JSON** to your own storage now and then.
+- **Safe tool updates**: the app carries a `schemaVersion` and migrates older states forward on load, so improving the tool doesn't lose or break your data — it lives in your browser (and your exports), independent of the code.
 
 ## Exports & reloading
 
