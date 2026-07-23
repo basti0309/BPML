@@ -47,6 +47,7 @@ function migrate(d) {
   d.meta.countries = d.meta.countries || [];
   d.meta.statusValues = d.meta.statusValues && d.meta.statusValues.length ? d.meta.statusValues : ['Draft', 'In Review', 'Final'];
   d.meta.afcTaskTypes = d.meta.afcTaskTypes && d.meta.afcTaskTypes.length ? d.meta.afcTaskTypes : ['Manual', 'Job', 'Workflow', 'Check', 'Milestone'];
+  d.meta.frequencyValues = d.meta.frequencyValues && d.meta.frequencyValues.length ? d.meta.frequencyValues : ['Monthly', 'Quarterly', 'Yearly', 'Ongoing'];
   d.areas = d.areas || [];
   d.changeLog = d.changeLog || [];
   for (const area of d.areas)

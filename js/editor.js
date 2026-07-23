@@ -51,8 +51,8 @@ export function openTaskEditor(taskId) {
   const typeOpts = meta.afcTaskTypes
     .map((s) => `<option ${s === (task.afc?.type || '') ? 'selected' : ''}>${escapeHtml(s)}</option>`)
     .join('');
-  const freqOpts = ['Monthly', 'Quarterly', 'Yearly']
-    .map((s) => `<option ${s === task.frequency ? 'selected' : ''}>${s}</option>`)
+  const freqOpts = (meta.frequencyValues || ['Monthly', 'Quarterly', 'Yearly', 'Ongoing'])
+    .map((s) => `<option ${s === task.frequency ? 'selected' : ''}>${escapeHtml(s)}</option>`)
     .join('');
 
   const procOpts = [];

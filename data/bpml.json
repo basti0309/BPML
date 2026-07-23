@@ -49,6 +49,12 @@
       "Workflow",
       "Check",
       "Milestone"
+    ],
+    "frequencyValues": [
+      "Monthly",
+      "Quarterly",
+      "Yearly",
+      "Ongoing"
     ]
   },
   "areas": [

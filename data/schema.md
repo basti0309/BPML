@@ -26,7 +26,7 @@ in the browser's localStorage at runtime). Every export is a complete snapshot.
 | `system` | string | System (SAP S/4, AFC, local tools …) |
 | `transaction` | string | Transaction / Fiori app / job |
 | `closingDay` | int | Workday offset to the period-end date (−5 … +12, 0 = period-end) |
-| `frequency` | string | Monthly / Quarterly / Yearly |
+| `frequency` | string | Monthly / Quarterly / Yearly / Ongoing (from `meta.frequencyValues`) |
 | `dependsOn` | string[] | Predecessor task IDs (drives calendar & BPMN) |
 | `afc` | object | `type` (Manual/Job/Workflow/Check/Milestone), `duration` (minutes), `jobName` |
 | `status` | string | Draft / In Review / Final |
@@ -47,7 +47,7 @@ re-numbers automatically on drag & drop / reorder; the stable IDs are unaffected
 - `meta.countries`: countries with company codes (`entities`) – add, rename and delete them
   in the app via “🌐 Manage countries”
 - `meta.closingDayRange`: display range of the closing calendar
-- `meta.statusValues`, `meta.afcTaskTypes`: pick lists
+- `meta.statusValues`, `meta.afcTaskTypes`, `meta.frequencyValues`: pick lists (drive the editor dropdowns)
 
 ## Excel import (in-app)
 

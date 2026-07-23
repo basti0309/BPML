@@ -77,6 +77,7 @@ export function renderTable(root) {
             <th>Responsible</th>
             <th>System / Transaction</th>
             <th style="width:60px">WD</th>
+            <th>Freq.</th>
             <th>AFC type</th>
             <th>Countries</th>
             <th>Status</th>
@@ -348,7 +349,7 @@ function renderRows(tbody, data) {
   for (const area of data.areas) {
     const areaTasks = taskIdsWithinData(area);
     rows.push(`<tr class="row-area" data-toggle="${area.id}" data-node="${area.id}" data-kind="area">
-      <td colspan="8">${handle()}${caret(area.id)}${numTag(area.id)}<span class="node-name">${escapeHtml(area.name)}</span>
+      <td colspan="9">${handle()}${caret(area.id)}${numTag(area.id)}<span class="node-name">${escapeHtml(area.name)}</span>
         <span class="muted">(${areaTasks} tasks)</span>${rowActions('area', area.id)}</td>
     </tr>`);
     if (collapsed.has(area.id)) continue;
@@ -356,13 +357,13 @@ function renderRows(tbody, data) {
     for (const group of area.groups) {
       if (filter.group && group.name !== filter.group) continue;
       rows.push(`<tr class="row-group" data-toggle="${group.id}" data-node="${group.id}" data-kind="group">
-        <td colspan="8" style="padding-left:22px">${handle()}${caret(group.id)}${numTag(group.id)}<span class="node-name">${escapeHtml(group.name)}</span>${rowActions('group', group.id)}</td>
+        <td colspan="9" style="padding-left:22px">${handle()}${caret(group.id)}${numTag(group.id)}<span class="node-name">${escapeHtml(group.name)}</span>${rowActions('group', group.id)}</td>
       </tr>`);
       if (collapsed.has(group.id)) continue;
 
       for (const proc of group.processes) {
         rows.push(`<tr class="row-proc" data-toggle="${proc.id}" data-node="${proc.id}" data-kind="process">
-          <td colspan="8" style="padding-left:40px">${handle()}${caret(proc.id)}${numTag(proc.id)}<span class="node-name">${escapeHtml(proc.name)}</span>${rowActions('process', proc.id)}</td>
+          <td colspan="9" style="padding-left:40px">${handle()}${caret(proc.id)}${numTag(proc.id)}<span class="node-name">${escapeHtml(proc.name)}</span>${rowActions('process', proc.id)}</td>
         </tr>`);
         if (collapsed.has(proc.id)) continue;
 
@@ -381,6 +382,7 @@ function renderRows(tbody, data) {
             <td data-label="Responsible">${escapeHtml(task.owner || '–')}</td>
             <td data-label="System">${escapeHtml(task.system || '–')}${task.transaction ? `<div class="muted">${escapeHtml(task.transaction)}</div>` : ''}</td>
             <td data-label="WD"><span class="chip day">${fmtDay(task.closingDay)}</span></td>
+            <td data-label="Freq.">${escapeHtml(task.frequency || '–')}</td>
             <td data-label="AFC type">${escapeHtml(task.afc?.type || '–')}</td>
             <td data-label="Countries">${countryCells(task, meta)}</td>
             <td data-label="Status">${statusChip(task.status)}</td>
