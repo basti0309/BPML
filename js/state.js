@@ -48,6 +48,8 @@ function migrate(d) {
   d.meta.statusValues = d.meta.statusValues && d.meta.statusValues.length ? d.meta.statusValues : ['Draft', 'In Review', 'Final'];
   d.meta.afcTaskTypes = d.meta.afcTaskTypes && d.meta.afcTaskTypes.length ? d.meta.afcTaskTypes : ['Manual', 'Job', 'Workflow', 'Check', 'Milestone'];
   d.meta.frequencyValues = d.meta.frequencyValues && d.meta.frequencyValues.length ? d.meta.frequencyValues : ['Monthly', 'Quarterly', 'Yearly', 'Ongoing'];
+  for (const k of ['ownerValues', 'raciRValues', 'raciAValues', 'systemValues', 'transactionValues', 'jobValues'])
+    d.meta[k] = Array.isArray(d.meta[k]) ? d.meta[k] : [];
   d.areas = d.areas || [];
   d.changeLog = d.changeLog || [];
   for (const area of d.areas)
@@ -533,6 +535,82 @@ export function updateCountry(code, patch) {
   if (patch.entities !== undefined) country.entities = patch.entities;
   persist();
   return { ok: true, code: country.code };
+}
+
+// ---- Field value lists (pick-lists & suggestions) ------------------------
+// `strict` lists back the editor's <select> dropdowns (renaming a value re-maps
+// every task using it). The rest back suggestion datalists on free-text inputs
+// (typing a new value is always allowed).
+const FIELD_LISTS = [
+  { key: 'statusValues', field: 'status', label: 'Status', strict: true },
+  { key: 'afcTaskTypes', field: 'afc.type', label: 'AFC task type', strict: true },
+  { key: 'frequencyValues', field: 'frequency', label: 'Frequency', strict: true },
+  { key: 'ownerValues', field: 'owner', label: 'Responsible (org.)', strict: false },
+  { key: 'raciRValues', field: 'raci.r', label: 'Responsible (R)', strict: false },
+  { key: 'raciAValues', field: 'raci.a', label: 'Accountable (A)', strict: false },
+  { key: 'systemValues', field: 'system', label: 'System', strict: false },
+  { key: 'transactionValues', field: 'transaction', label: 'Transaction', strict: false },
+  { key: 'jobValues', field: 'afc.jobName', label: 'Job template', strict: false },
+];
+const listDef = (key) => FIELD_LISTS.find((l) => l.key === key);
+const getPath = (obj, path) => path.split('.').reduce((o, k) => (o == null ? o : o[k]), obj);
+function setPath(obj, path, val) {
+  const parts = path.split('.');
+  let o = obj;
+  for (let i = 0; i < parts.length - 1; i++) { o[parts[i]] = o[parts[i]] || {}; o = o[parts[i]]; }
+  o[parts[parts.length - 1]] = val;
+}
+const getList = (key) => (data.meta[key] = data.meta[key] || []);
+
+export function fieldLists() {
+  return FIELD_LISTS.map((l) => ({ ...l, values: [...getList(l.key)] }));
+}
+export function distinctFieldValues(field) {
+  const set = new Set();
+  for (const { task } of allTasks()) { const v = getPath(task, field); if (v) set.add(v); }
+  return [...set].sort();
+}
+export function fieldSuggestions(key, field) {
+  return [...new Set([...(data.meta[key] || []), ...distinctFieldValues(field)])].filter(Boolean).sort();
+}
+export function addFieldValue(key, value) {
+  const def = listDef(key); if (!def) return { error: 'Unknown list.' };
+  const v = String(value || '').trim(); if (!v) return { error: 'Please enter a value.' };
+  const list = getList(key);
+  if (list.includes(v)) return { error: `“${v}” already exists.` };
+  list.push(v);
+  addLog(`Added “${v}” to ${def.label}`);
+  persist();
+  return { ok: true };
+}
+export function renameFieldValue(key, oldV, newV) {
+  const def = listDef(key); if (!def) return { error: 'Unknown list.' };
+  const v = String(newV || '').trim(); if (!v) return { error: 'Value must not be empty.' };
+  const list = getList(key);
+  const idx = list.indexOf(oldV); if (idx < 0) return { error: 'Value not found.' };
+  if (v !== oldV && list.includes(v)) return { error: `“${v}” already exists.` };
+  list[idx] = v;
+  let n = 0;
+  for (const { task } of allTasks()) if (getPath(task, def.field) === oldV) { setPath(task, def.field, v); n++; }
+  addLog(`Renamed ${def.label} “${oldV}” → “${v}”${n ? ` (${n} task(s))` : ''}`);
+  persist();
+  return { ok: true };
+}
+export function deleteFieldValue(key, value, replacement) {
+  const def = listDef(key); if (!def) return { error: 'Unknown list.' };
+  const list = getList(key);
+  const idx = list.indexOf(value); if (idx < 0) return { error: 'Value not found.' };
+  const inUse = allTasks().filter(({ task }) => getPath(task, def.field) === value).length;
+  if (inUse && def.strict) {
+    if (replacement === undefined || replacement === null) return { inUse };
+    const repl = String(replacement).trim();
+    if (repl === value || !list.includes(repl)) return { error: `Replacement must be an existing ${def.label} value.` };
+    for (const { task } of allTasks()) if (getPath(task, def.field) === value) setPath(task, def.field, repl);
+  }
+  list.splice(idx, 1);
+  addLog(`Deleted ${def.label} “${value}”${inUse && def.strict ? ` (reassigned ${inUse} task(s))` : ''}`);
+  persist();
+  return { ok: true };
 }
 
 // Harmonisierungsgrad: Anteil der Land-Zellen ohne Abweichung (nur relevante Zellen)

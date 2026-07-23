@@ -3,6 +3,7 @@
 import {
   getData, taskById, updateTask, deleteTask, addComment, allTasks, moveNode, getEditor, outlineNumbers,
   addCountry, deleteCountry, updateCountry,
+  fieldLists, fieldSuggestions, addFieldValue, renameFieldValue, deleteFieldValue,
 } from './state.js';
 
 export function escapeHtml(s) {
@@ -45,15 +46,19 @@ export function openTaskEditor(taskId) {
   const numbers = outlineNumbers();
   const no = numbers.get(task.id) || '';
 
-  const statusOpts = meta.statusValues
-    .map((s) => `<option ${s === task.status ? 'selected' : ''}>${escapeHtml(s)}</option>`)
-    .join('');
-  const typeOpts = meta.afcTaskTypes
-    .map((s) => `<option ${s === (task.afc?.type || '') ? 'selected' : ''}>${escapeHtml(s)}</option>`)
-    .join('');
-  const freqOpts = (meta.frequencyValues || ['Monthly', 'Quarterly', 'Yearly', 'Ongoing'])
-    .map((s) => `<option ${s === task.frequency ? 'selected' : ''}>${escapeHtml(s)}</option>`)
-    .join('');
+  // Build <option>s from the meta list; always include the task's current value
+  // so an off-list value is never silently changed on save.
+  const optsFor = (values, current) => {
+    const vals = (values || []).slice();
+    if (current && !vals.includes(current)) vals.unshift(current);
+    return vals.map((s) => `<option ${s === current ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
+  };
+  const statusOpts = optsFor(meta.statusValues, task.status);
+  const typeOpts = optsFor(meta.afcTaskTypes, task.afc?.type || '');
+  const freqOpts = optsFor(meta.frequencyValues, task.frequency);
+
+  const datalist = (id, key, field) =>
+    `<datalist id="${id}">${fieldSuggestions(key, field).map((v) => `<option value="${escapeHtml(v)}"></option>`).join('')}</datalist>`;
 
   const procOpts = [];
   for (const a of getData().areas) {
@@ -106,22 +111,22 @@ export function openTaskEditor(taskId) {
         <textarea id="f-desc">${escapeHtml(task.description || '')}</textarea>
       </label>
       <label>Responsible (org.)
-        <input id="f-owner" value="${escapeHtml(task.owner || '')}" />
+        <input id="f-owner" list="dl-owner" value="${escapeHtml(task.owner || '')}" />
       </label>
       <label>Status
         <select id="f-status">${statusOpts}</select>
       </label>
       <label>Responsible (R)
-        <input id="f-raci-r" value="${escapeHtml(task.raci?.r || '')}" />
+        <input id="f-raci-r" list="dl-raci-r" value="${escapeHtml(task.raci?.r || '')}" />
       </label>
       <label>Accountable (A)
-        <input id="f-raci-a" value="${escapeHtml(task.raci?.a || '')}" />
+        <input id="f-raci-a" list="dl-raci-a" value="${escapeHtml(task.raci?.a || '')}" />
       </label>
       <label>System
-        <input id="f-system" value="${escapeHtml(task.system || '')}" />
+        <input id="f-system" list="dl-system" value="${escapeHtml(task.system || '')}" />
       </label>
       <label>Transaction / app / job
-        <input id="f-txn" value="${escapeHtml(task.transaction || '')}" />
+        <input id="f-txn" list="dl-txn" value="${escapeHtml(task.transaction || '')}" />
       </label>
       <label>Closing day (workday offset)
         <input id="f-day" type="number" step="1" value="${task.closingDay ?? 0}" />
@@ -136,7 +141,7 @@ export function openTaskEditor(taskId) {
         <input id="f-afc-dur" type="number" min="0" value="${task.afc?.duration ?? ''}" />
       </label>
       <label>Job name (for type Job)
-        <input id="f-afc-job" value="${escapeHtml(task.afc?.jobName || '')}" />
+        <input id="f-afc-job" list="dl-job" value="${escapeHtml(task.afc?.jobName || '')}" />
       </label>
       <label>Harmonized (global template)
         <select id="f-harm">
@@ -151,6 +156,12 @@ export function openTaskEditor(taskId) {
         <select id="f-move">${procOpts}</select>
       </label>
     </div>
+    ${datalist('dl-owner', 'ownerValues', 'owner')}
+    ${datalist('dl-raci-r', 'raciRValues', 'raci.r')}
+    ${datalist('dl-raci-a', 'raciAValues', 'raci.a')}
+    ${datalist('dl-system', 'systemValues', 'system')}
+    ${datalist('dl-txn', 'transactionValues', 'transaction')}
+    ${datalist('dl-job', 'jobValues', 'afc.jobName')}
 
     <fieldset class="country-block" id="country-block">
       <legend>Country scope & deviations</legend>
@@ -298,4 +309,73 @@ export function openCountryManager() {
     openCountryManager();
     showToast(`Country ${res.code} added.`);
   };
+}
+
+/** Manage the possible entries (pick-lists / suggestions) for each field. */
+export function openFieldValueManager() {
+  const sections = fieldLists()
+    .map((l) => {
+      const rows = l.values.length
+        ? l.values
+            .map(
+              (v) => `<div class="fv-row" data-key="${l.key}" data-value="${escapeHtml(v)}">
+                <input class="fv-val" value="${escapeHtml(v)}" />
+                <button class="btn mini danger fv-del" title="Delete value">🗑</button>
+              </div>`
+            )
+            .join('')
+        : '<div class="muted" style="font-size:12px;margin:4px 0">No values yet.</div>';
+      return `<fieldset class="fv-block" data-key="${l.key}">
+        <legend>${escapeHtml(l.label)} <span class="chip ${l.strict ? 'info' : 'na'}">${l.strict ? 'dropdown' : 'suggestions'}</span></legend>
+        ${rows}
+        <div class="fv-add">
+          <input class="fv-new" placeholder="New value" />
+          <button class="btn mini fv-addbtn">+ Add</button>
+        </div>
+      </fieldset>`;
+    })
+    .join('');
+
+  openDrawerHtml(`
+    <h2>Field values</h2>
+    <div class="muted" style="margin-bottom:10px">
+      Customize the entries offered for each field. <b>Dropdown</b> fields (Status, AFC type,
+      Frequency) are strict — renaming a value updates every task using it. <b>Suggestion</b>
+      fields also offer values already in use; typing something new stays allowed. Countries are
+      managed via 🌐.
+    </div>
+    <div id="fv-body">${sections}</div>
+  `);
+
+  const body = document.getElementById('fv-body');
+  body.addEventListener('change', (e) => {
+    const row = e.target.closest('.fv-row');
+    if (row && e.target.classList.contains('fv-val')) {
+      const res = renameFieldValue(row.dataset.key, row.dataset.value, e.target.value);
+      if (res && res.error) showToast(res.error, 5000);
+      openFieldValueManager();
+    }
+  });
+  body.addEventListener('click', (e) => {
+    const del = e.target.closest('.fv-del');
+    const add = e.target.closest('.fv-addbtn');
+    if (del) {
+      const row = del.closest('.fv-row');
+      const key = row.dataset.key;
+      const value = row.dataset.value;
+      let res = deleteFieldValue(key, value);
+      if (res && res.inUse) {
+        const repl = prompt(`“${value}” is used by ${res.inUse} task(s). Enter a replacement value (from the list) to reassign them:`, '');
+        if (repl === null) return;
+        res = deleteFieldValue(key, value, repl);
+      }
+      if (res && res.error) showToast(res.error, 5000);
+      openFieldValueManager();
+    } else if (add) {
+      const block = add.closest('.fv-block');
+      const res = addFieldValue(block.dataset.key, block.querySelector('.fv-new').value);
+      if (res && res.error) { showToast(res.error, 5000); return; }
+      openFieldValueManager();
+    }
+  });
 }

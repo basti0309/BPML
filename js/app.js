@@ -9,7 +9,7 @@ import { renderMatrix } from './views/matrix.js';
 import { renderCalendar } from './views/calendar.js';
 import { renderBpmn } from './views/bpmn.js';
 import { renderAfc } from './views/afc.js';
-import { closeDrawer, showToast, openDrawerHtml, openCountryManager } from './editor.js';
+import { closeDrawer, showToast, openDrawerHtml, openCountryManager, openFieldValueManager } from './editor.js';
 
 const views = {
   table: renderTable,
@@ -83,6 +83,7 @@ async function main() {
   };
 
   document.getElementById('btn-countries').onclick = () => openCountryManager();
+  document.getElementById('btn-fields').onclick = () => openFieldValueManager();
 
   // Keyboard shortcuts for undo/redo – only outside input fields (native text
   // undo applies there).

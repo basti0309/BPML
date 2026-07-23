@@ -153,7 +153,13 @@ Die **Array-Reihenfolge ist zugleich die Anzeige- und Exportreihenfolge**. Drag 
   Matrix und Länder-Filter.
 - `meta.closingDayRange` – sichtbarer Bereich des Kalenders (wird beim Import
   automatisch auf die Datenspanne erweitert).
-- `meta.statusValues`, `meta.afcTaskTypes` – Auswahllisten für die Dropdowns.
+- `meta.statusValues`, `meta.afcTaskTypes`, `meta.frequencyValues` – **strikte**
+  Auswahllisten für die Dropdowns (Status, AFC-Typ, Frequenz).
+- `meta.ownerValues`, `meta.raciRValues`, `meta.raciAValues`, `meta.systemValues`,
+  `meta.transactionValues`, `meta.jobValues` – **Vorschlagslisten** für die Freitextfelder
+  (als Datalist neben den bereits verwendeten Werten angeboten).
+- Alle vorstehenden Listen sind in der App über **🏷 Feldwerte verwalten** editierbar
+  (siehe 5.3a).
 - `changeLog[]` – automatisch geführtes Änderungsprotokoll (siehe 5.7).
 
 ---
@@ -231,6 +237,32 @@ Vergleich Tasks × Länder zur Harmonisierungsanalyse.
 
 > Definition Harmonisierungsgrad: Anteil der **relevanten** Land-Zellen ohne Abweichung
 > (`std / (std + variant)`), berechnet in `harmonizationStats()` in `state.js`.
+
+### 5.3a Feldwerte verwalten (`editor.js`, `state.js`) — 🏷 Toolbar
+
+Zentrale Stelle, um die **möglichen Einträge aller Editor-Felder** anzupassen. Öffnet über
+den Toolbar-Button 🏷 (`openFieldValueManager` in `editor.js`) ein Panel mit einem Block je
+Feld. Grundlage ist die Definitionstabelle `FIELD_LISTS` in `state.js`, die jedes Feld auf
+seine Meta-Liste (`meta.*Values` bzw. `meta.afcTaskTypes`) und seinen Task-Pfad abbildet.
+
+Zwei Feldtypen:
+
+- **Dropdown-Felder (strict)** – Status, AFC-Typ, Frequenz. Der Editor bietet ausschließlich
+  Werte aus der Liste an.
+  - **Umbenennen** (Inline-Edit eines Werts) migriert den Wert über
+    `renameFieldValue(key, alt, neu)` in **allen** betroffenen Tasks mit.
+  - **Löschen** eines noch verwendeten Werts fragt via `deleteFieldValue` nach einem
+    **Ersatzwert** (der wiederum in der Liste liegen muss); ungenutzte Werte werden direkt
+    entfernt.
+- **Vorschlag-Felder (frei)** – Verantwortlich (Org.), R, A, System, Transaktion,
+  Job-Template. Freitext bleibt erlaubt; die gepflegte Liste erscheint zusammen mit den
+  bereits im Datenbestand vorkommenden Werten (`fieldSuggestions` = kuratierte Liste ∪
+  benutzte Werte) als `<datalist>` am jeweiligen Eingabefeld.
+
+Hinzufügen ist für beide Typen gleich (`addFieldValue`). Alle Operationen laufen über die
+`state.js`-API (Persistenz, Undo/Redo, Änderungsprotokoll) und rendern das Panel neu. Die
+Editor-Dropdowns nehmen einen ggf. „off-list“ gesetzten Aktualwert defensiv mit auf, damit
+Altbestände nie unsichtbar werden.
 
 ### 5.4 Closing-Kalender (`views/calendar.js`)
 
@@ -433,7 +465,8 @@ Wo man typische Anpassungen vornimmt:
 
 | Aufgabe | Ort |
 |---|---|
-| Neue Auswahlwerte (Status, AFC-Typen) | `meta.statusValues` / `meta.afcTaskTypes` in `data/bpml.json` |
+| Auswahlwerte / Vorschläge aller Felder ändern | **In-App: 🏷 Feldwerte verwalten** (`openFieldValueManager`); Definition in `FIELD_LISTS` (`state.js`), gespeichert in `meta.*Values` / `meta.afcTaskTypes` |
+| Neues Feld in den Feldwert-Manager aufnehmen | Eintrag in `FIELD_LISTS` (`state.js`) ergänzen (`key`, `field`-Pfad, `label`, `strict`) und Migration um die neue `meta`-Liste erweitern |
 | Länder/Buchungskreise ändern | **In-App: 🌐 Länder verwalten** (oder `meta.countries` in `data/bpml.json`); Logik in `state.js` (`addCountry`/`deleteCountry`/`updateCountry`) |
 | Neues Task-Feld | `state.js` (`newTask`-Template), `editor.js` (Formular), ggf. `io.js` (Export/Import) und Views |
 | Excel-Spalten-Mapping erweitern | `COLUMN_ALIASES` in `io.js` |
@@ -458,8 +491,10 @@ Wo man typische Anpassungen vornimmt:
 > Umgesetzt bisher: formatierter Excel-Export, **verlustfreier Round-Trip**
 > (Export → Mail → wieder einladen), **Undo/Redo**, **Bearbeiter/Urheber** im Protokoll,
 > **Abweichungsgrund** im Editor (+ Fix des nicht gespeicherten Länder-Scopes), englische
-> Standardsprache, **Prozessnummer** (interne IDs verborgen), sowie **Backups &
-> Wiederherstellung + Schema-Migration** (Sicherheitsnetz gegen Datenverlust).
+> Standardsprache, **Prozessnummer** (interne IDs verborgen), **Backups &
+> Wiederherstellung + Schema-Migration** (Sicherheitsnetz gegen Datenverlust), **Frequenz
+> in der Tabelle** (inkl. „Ongoing“) sowie **🏷 Feldwerte verwalten** (Auswahllisten &
+> Vorschläge aller Felder in-App editierbar).
 
 Noch offen:
 

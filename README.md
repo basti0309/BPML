@@ -29,6 +29,7 @@ The app is the primary working tool; exports are for sending around **and** for 
 - **↶ / ↷ Undo / Redo** any change (also via `Ctrl+Z` / `Ctrl+Shift+Z`; inside input fields the native text-undo applies).
 - **👤 Editor**: set your name — it appears in the change log and pre-fills on comments.
 - **🌐 Manage countries**: add, rename, change a code (migrated across all tasks) or delete countries (also via “Manage countries” in the Country Matrix). A new country is initially added as “Standard” for every task.
+- **🏷 Manage field values**: customize the entries offered for each field. **Dropdown** fields (Status, AFC type, Frequency) are strict — renaming a value updates every task that uses it, deleting an in-use value asks for a replacement. **Suggestion** fields (Responsible/R/A, System, Transaction, Job) offer a curated list plus values already in use, while still allowing free text.
 - All changes are saved to the browser immediately (localStorage).
 - **🗄 Backups & restore**: automatic restore points (last 20) kept in this browser. One is made **before every reset/import** and **periodically while you work**; the panel lets you **restore**, download or delete them. They survive **↺ Reset**. For off-device safety, still export **⬇ JSON** to your own storage now and then.
 - **Safe tool updates**: the app carries a `schemaVersion` and migrates older states forward on load, so improving the tool doesn't lose or break your data — it lives in your browser (and your exports), independent of the code.

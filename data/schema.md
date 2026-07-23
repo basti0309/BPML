@@ -47,7 +47,9 @@ re-numbers automatically on drag & drop / reorder; the stable IDs are unaffected
 - `meta.countries`: countries with company codes (`entities`) – add, rename and delete them
   in the app via “🌐 Manage countries”
 - `meta.closingDayRange`: display range of the closing calendar
-- `meta.statusValues`, `meta.afcTaskTypes`, `meta.frequencyValues`: pick lists (drive the editor dropdowns)
+- `meta.statusValues`, `meta.afcTaskTypes`, `meta.frequencyValues`: strict pick lists (drive the editor dropdowns)
+- `meta.ownerValues`, `meta.raciRValues`, `meta.raciAValues`, `meta.systemValues`, `meta.transactionValues`, `meta.jobValues`: suggestion lists for the free-text fields (shown as datalist suggestions alongside values already in use)
+- All of the above are editable in-app via “🏷 Manage field values”
 
 ## Excel import (in-app)
 
